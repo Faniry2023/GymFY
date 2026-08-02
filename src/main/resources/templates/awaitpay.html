@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>PaySim - Scan QR Code</title>
+  <!-- Librairie QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Librairie SignalR (même que Angular utilise) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    h2 {
+        color: #2e7d32;
+        margin-bottom: 8px;
+    }
+    .subtitle {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+    #qrcode {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+    }
+    #qrcode canvas, #qrcode img {
+        border-radius: 8px;
+        border: 3px solid #2e7d32;
+        padding: 8px;
+    }
+    .status {
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .status.attente {
+        background: #fff8e1;
+        color: #f57f17;
+        border: 1px solid #ffe082;
+    }
+    .status.succes {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+        display: none;
+    }
+    .status.erreur {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+        display: none;
+    }
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f57f17;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .info-box {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 11px;
+        color: #888;
+        margin-top: 16px;
+        word-break: break-all;
+        text-align: left;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>📱 Scannez pour payer</h2>
+  <p class="subtitle">Utilisez votre application mobile pour scanner ce QR Code</p>
+
+  <!-- QR Code généré ici -->
+  <div id="qrcode"></div>
+  <div id="valueKeyText" class="info-box"></div>
+
+  <!-- Statut attente -->
+  <div class="status attente" id="statusAttente">
+    <span class="spinner"></span> Paiement en attente...
+  </div>
+
+  <!-- Statut succès -->
+  <div class="status succes" id="statusSucces">
+    ✅ Paiement reçu ! Redirection en cours...
+  </div>
+
+  <!-- Statut erreur -->
+  <div class="status erreur" id="statusErreur">
+    ❌ <span id="erreurMessage"></span>
+  </div>
+
+</div>
+
+<script th:inline="javascript">
+  const valueKey = /*[[${valueKey}]]*/ '';
+document.getElementById("valueKeyText").textContent = valueKey;
+  new QRCode(document.getElementById("qrcode"), {
+      text: valueKey,
+      width: 220,
+      height: 220,
+      colorDark: "#1b5e20",
+      colorLight: "#ffffff",
+  });
+
+  const HUB_URL = "https://paysim.runasp.net/payhubs";
+  /*const HUB_URL = "https://localhost:7110/payhubs";*/
+  const payId = valueKey.split("/")[0].replace("id:", "");
+
+  function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : null;
+  }
+  const jwtApiKey = /*[[${jwtToken}]]*/ '';
+
+  const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${HUB_URL}?type=project&payId=${payId}&access_token=${jwtApiKey}`)
+      .withAutomaticReconnect()
+      .build();
+
+  // ✅ C'est ici que le redirect se fait quand le Hub envoie true
+  connection.on("PaymentSuccess", function(result) {
+      if (result === true) {
+          document.getElementById("statusAttente").style.display = "none";
+          document.getElementById("statusSucces").style.display = "block";
+          setTimeout(() => {
+              window.location.href = "/success"; // ← le redirect
+          }, 1500);
+      }
+  });
+
+  function afficherErreur(msg) {
+      document.getElementById("statusAttente").style.display = "none";
+      document.getElementById("statusErreur").style.display = "block";
+      document.getElementById("erreurMessage").textContent = msg;
+  }
+
+  connection.on("Error", afficherErreur);
+  connection.on("Erreur", afficherErreur);
+  connection.on("PaymentError", afficherErreur);
+  connection.on("ServerError", function(err) {
+      afficherErreur(err.Message || "Erreur serveur");
+  });
+
+  connection.start()
+      .then(() => console.log("✅ Connecté, payId:", payId))
+      .catch(err => afficherErreur("Impossible de se connecter au serveur de paiement."));
+
+  setInterval(() => {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+          connection.invoke("Ping").catch(err => console.warn("Ping échoué:", err));
+      }
+  }, 30000);
+</script>
+</body>
+</html>

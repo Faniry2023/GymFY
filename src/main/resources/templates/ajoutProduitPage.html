@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier le client</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0d1b2a;
+            color: #e8f0fe;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .card {
+            background: #132233;
+            border: 1px solid #1e3a55;
+            border-radius: 16px;
+            padding: 2.5rem 2.25rem;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            position: relative;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #4db8ff, transparent);
+            border-radius: 0 0 4px 4px;
+        }
+        h2 {
+            text-align: center;
+            color: #4db8ff;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 1.75rem;
+        }
+        .alert-error {
+            background: rgba(224,82,82,.1);
+            border: 1px solid rgba(224,82,82,.3);
+            color: #ff8a8a;
+            padding: .75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            font-size: .875rem;
+        }
+        .form-group { margin-bottom: 1.1rem; }
+        label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #8baabf;
+            margin-bottom: .4rem;
+        }
+        input {
+            width: 100%;
+            padding: .7rem 1rem;
+            background: #16304f;
+            border: 1px solid #1e3a55;
+            border-radius: 8px;
+            color: #e8f0fe;
+            font-size: .9rem;
+            font-family: 'Segoe UI', sans-serif;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        input:focus {
+            border-color: #4db8ff;
+            box-shadow: 0 0 0 3px rgba(77,184,255,.15);
+        }
+        .btn-save {
+            width: 100%;
+            padding: .8rem;
+            background: #1a6fc4;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+            margin-top: .5rem;
+        }
+        .btn-save:hover { background: #2589e8; }
+        .btn-cancel {
+            display: block;
+            text-align: center;
+            margin-top: .75rem;
+            color: #8baabf;
+            text-decoration: none;
+            font-size: .875rem;
+            transition: color .2s;
+        }
+        .btn-cancel:hover { color: #e8f0fe; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>✏️Ajouter un nouveau produit</h2>
+
+    <div class="alert-error"></div>
+
+    <form  action="/api/produit/ajoutProduit" method="post" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label>Nom du produit *</label>
+            <input type="text" name="nom"required/>
+        </div>
+
+        <div class="form-group">
+            <label>Catégorie *</label>
+            <select name="categorie" required>
+                <option value="">-- Choisir --</option>
+
+                <option value="Protéines">Protéines</option>
+
+                <option value="Vitamines" >Vitamines</option>
+
+                <option value="Glucides" >Glucides</option>
+
+                <option value="Performance">Performance</option>
+
+                <option value="Brûle-graisses">Brûle-graisses</option>
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Prix (Ar) *</label>
+            <input type="number" name="prix" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Stock *</label>
+            <input type="number" name="stock" required/>
+            <div class="stock-hint" id="stockHint"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Note (sur 5)</label>
+            <input type="number" name="note"/>
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Image </label>
+            <input type="file" name="imageFile" accept="image/*"/>
+        </div>
+
+
+
+        <button type="submit" class="btn-save">💾 Enregistrer</button>
+        <a href="/api/produit/afficheAllProduit?page=produits" class="btn-cancel">← Annuler</a>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,738 @@
+    <!DOCTYPE html>
+    <html lang="fr" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>GYMfy - Compléments Alimentaires</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family:sans-serif; background:#f5f5f5; }
+
+            .gymfy-header {
+                background:linear-gradient(135deg,#1a1a2e 0%,blue 100%);
+                padding:0 2rem; display:flex; align-items:center;
+                justify-content:space-between; height:64px;
+            }
+            .gymfy-logo { font-size:26px; font-weight:700; color:yellow; letter-spacing:2px; }
+            .gymfy-logo span { color:#fff; }
+            .nav-links { display:flex; gap:24px; list-style:none; }
+            .nav-links a { color:#ccc; text-decoration:none; font-size:14px; }
+            .nav-cta { background:rgba(255,0,0,0.696); color:white !important;
+                       padding:8px 16px; border-radius:8px; font-weight:500 !important; }
+
+            .hero {
+                background-image:url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&q=80");
+                background-size:cover; background-position:center;
+                padding:3rem 2rem; display:flex; align-items:center;
+                justify-content:space-between; gap:2rem; min-height:260px;
+            }
+            .hero-text h1 { font-size:32px; font-weight:700; color:#fff; line-height:1.3; margin-bottom:12px; }
+            .hero-text p { color:#aaa; font-size:15px; margin-bottom:20px; max-width:380px; }
+            .hero-btn { background:#16213e; color:skyblue; border:none;
+                        padding:12px 28px; border-radius:8px; font-size:15px; cursor:pointer; }
+            .hero-badge { background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.3);
+                          border-radius:12px; padding:1.5rem; text-align:center;
+                          min-width:160px; flex-shrink:0; }
+            .hero-badge .icon { font-size:36px; margin-bottom:8px; }
+            .hero-badge p { color:#00d4aa; font-size:13px; font-weight:500; }
+
+            .main-content { max-width:1200px; margin:0 auto; padding:1.5rem; }
+            .section-title { font-size:20px; font-weight:500; color:#1a1a2e; margin:1.5rem 0 1rem; }
+            .section-title span { color:#16213e; }
+
+            .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:1.5rem; }
+            .stat-card { background:#fff; border-radius:8px; padding:1rem; text-align:center; border:0.5px solid #e0e0e0; }
+            .stat-card .val { font-size:24px; font-weight:500; color:#16213e; }
+            .stat-card .lbl { font-size:12px; color:#888; margin-top:4px; }
+
+            /* PRODUITS */
+            .container { display:flex; align-items:center; gap:12px; width:100%; }
+            .scroll-container {
+                display:flex; gap:20px; flex:1; overflow-x:auto;
+                padding:10px; border:1px solid #16213e; border-radius:15px;
+                box-shadow:4px 2px 18px rgba(0,0,0,0.715);
+                background:rgba(3,3,41,0.886); scrollbar-width:none;
+            }
+            .card {
+                min-width:310px; max-width:310px; height:320px;
+                background:#fff; border-radius:12px; border:1px solid #16213e;
+                padding:15px; display:flex; flex-direction:column;
+                justify-content:space-between; text-align:center;
+                flex-shrink:0; box-shadow:0 6px 15px rgba(0,0,0,0.1); transition:transform 0.3s;
+            }
+            .card:hover { transform:scale(1.05); }
+            .card img { width:250px; height:150px; object-fit:cover; border-radius:8px; }
+            .scroll-btn {
+                background:#1a1a2e; color:#00d4aa; border:1px solid #00d4aa;
+                width:36px; height:36px; border-radius:50%; font-size:16px;
+                cursor:pointer; flex-shrink:0; display:flex;
+                align-items:center; justify-content:center;
+            }
+            .category { font-size:11px; color:#3b82f6; font-weight:bold; text-transform:uppercase; margin-top:8px; }
+            .rating { font-size:13px; color:#f59e0b; margin:5px 0; }
+            .price-stock { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+            .price { font-size:18px; font-weight:bold; color:#16213e; }
+            .panier-zone { margin-top:auto; }
+            .btn-panier { background:green; color:white; border:none; padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer; }
+            .btn-panier:hover { background:rgba(4,4,139,0.964); }
+            .limite-stock { color:red; }
+            .nom_et_stock { display:flex; justify-content:center; gap:20px; }
+            .stock-count { border:1px solid yellow; background:yellow; color:black; }
+
+            /* PAIEMENT */
+            .payment-section {
+                background:#fff; border-radius:12px; border:0.5px solid #e0e0e0;
+                padding:1.5rem; display:flex; gap:2rem; align-items:center; margin-bottom:1.5rem;
+            }
+            .payment-info h2 { font-size:18px; font-weight:500; color:#1a1a2e; margin-bottom:8px; }
+            .payment-info p { font-size:14px; color:#666; margin-bottom:12px; }
+            .steps { list-style:none; }
+            .steps li { display:flex; align-items:center; gap:10px; font-size:13px; color:#555; margin-bottom:8px; }
+            .step-num { background:#16213e; color:white; width:22px; height:22px; border-radius:50%;
+                        display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; }
+            .qr-box { background:#fff; border-radius:12px; padding:16px;
+                      border:2px solid rgba(0,212,170,0.4); text-align:center; flex-shrink:0; }
+            .qr-box img { width:120px; height:120px; }
+            .qr-box p { font-size:12px; color:#555; margin-top:8px; font-weight:500; }
+
+            /* ══ PUBLICATIONS CONTAINER ══ */
+            .pub-container-wrapper {
+                display:flex; align-items:center; gap:12px; width:100%; margin-bottom:2rem;
+            }
+            .pub-scroll-box {
+                display:flex; gap:20px; flex:1; overflow-x:auto;
+                padding:12px; border:1px solid #1a1a2e; border-radius:15px;
+                box-shadow:4px 2px 18px rgba(0,0,0,0.5);
+                background:rgba(3,3,41,0.8); scrollbar-width:none;
+            }
+            .pub-scroll-box::-webkit-scrollbar { display:none; }
+
+            /* CARTE PUBLICATION */
+            .pub-card {
+                min-width:340px; max-width:340px;
+                background:#fff; border-radius:14px;
+                border:1px solid #e0e0e0; overflow:hidden;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);
+                flex-shrink:0; transition:transform 0.3s;
+                display:flex; flex-direction:column;
+            }
+            .pub-card:hover { transform:translateY(-4px); }
+
+            .pub-header {
+                display:flex; align-items:center; gap:10px;
+                padding:0.8rem 1rem; border-bottom:1px solid #f0f0f0;
+            }
+            .pub-avatar {
+                width:36px; height:36px; border-radius:50%;
+                background:#1a1a2e; display:flex; align-items:center;
+                justify-content:center; color:yellow; font-weight:700;
+                font-size:14px; flex-shrink:0;
+            }
+            .pub-username { font-weight:700; font-size:13px; color:#1a1a2e; }
+            .pub-date { font-size:10px; color:#aaa; }
+
+            /* Photos avant/après */
+            .pub-photos { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+            .pub-photo-wrap { position:relative; }
+            .pub-photo-wrap img { width:100%; height:160px; object-fit:cover; display:block; }
+            .pub-no-photo {
+                width:100%; height:160px; background:#f0f0f0;
+                display:flex; align-items:center; justify-content:center;
+                color:#bbb; font-size:12px;
+            }
+            .pub-label {
+                position:absolute; bottom:6px;
+                background:rgba(0,0,0,0.65); color:white;
+                padding:3px 8px; border-radius:10px;
+                font-size:10px; font-weight:700;
+            }
+            .pub-label.avant { left:6px; }
+            .pub-label.apres { right:6px; background:rgba(0,160,70,0.85); }
+
+            .pub-legende {
+                padding:0.6rem 0.8rem; font-size:13px;
+                color:#333; border-bottom:1px solid #f5f5f5;
+                min-height:36px;
+            }
+
+            /* RÉACTIONS */
+            .reactions-row {
+                display:flex; gap:6px; padding:0.5rem 0.8rem;
+                flex-wrap:wrap; border-bottom:1px solid #f5f5f5;
+            }
+            .r-btn {
+                background:#f5f5f5; border:1.5px solid #e0e0e0;
+                border-radius:20px; padding:4px 10px;
+                font-size:12px; cursor:pointer;
+                display:flex; align-items:center; gap:4px;
+                transition:all 0.2s; font-family:sans-serif;
+            }
+            .r-btn:hover { background:#e8f0fe; border-color:#93b4f5; }
+            .r-btn.active {
+                background:#e8f0fe; border-color:#1a1a2e;
+                font-weight:700;
+            }
+            .r-btn .r-count { font-weight:600; color:#1a1a2e; min-width:10px; text-align:center; }
+
+            /* COMMENTAIRES */
+            .comments-zone { padding:0.6rem 0.8rem; flex:1; }
+            .comment-item {
+                font-size:12px; padding:4px 0;
+                border-bottom:0.5px solid #f5f5f5;
+            }
+            .comment-item strong { color:#1a1a2e; }
+            .comment-input-row { display:flex; gap:6px; margin-top:6px; }
+            .comment-input-row input {
+                flex:1; padding:6px 10px; border:1px solid #ddd;
+                border-radius:8px; font-size:12px; font-family:sans-serif;
+            }
+            .comment-input-row input:focus { outline:none; border-color:#1a1a2e; }
+            .comment-input-row button {
+                padding:6px 12px; background:#1a1a2e; color:white;
+                border:none; border-radius:8px; font-size:12px; cursor:pointer;
+            }
+
+            /* MODAL */
+            .main-content.active { filter:blur(2px); }
+            .modal {
+                display:none; position:fixed; top:25%; left:35%;
+                background:rgba(116,79,11,0.748); padding:15px;
+                border-radius:10px; box-shadow:0 0 15px 13px rgba(0,0,0,0.67);
+            }
+            .modal.active { display:block; }
+            #modalImage { width:500px; height:400px; object-fit:cover; border-radius:15px; }
+            #modalNom { text-align:center; color:white; background:#1a1a2e; border-radius:10px; }
+            #modalDesc { text-align:center; color:white; }
+
+            .footer {
+                background:#1a1a2e; padding:1.2rem 2rem;
+                display:flex; align-items:center; justify-content:space-between;
+            }
+            .footer p { color:#666; font-size:12px; }
+            .footer-logo { font-size:18px; font-weight:700; color:#00d4aa; letter-spacing:2px; }
+
+            @keyframes fadeOut { from{opacity:1;} to{opacity:0;} }
+        </style>
+    </head>
+    <body>
+
+    <!-- HEADER -->
+    <header class="gymfy-header">
+        <div class="gymfy-logo">GYM<span>fy</span></div>
+        <ul class="nav-links">
+            <li><a href="#">Accueil</a></li>
+            <li><a href="/produits" style="color:#ffd700; font-weight:700;">🛍️ Nos Produits</a></li>
+            <li><a th:href="@{/api/coaching}" style="color:yellow;font-weight:700;">💪 Coaching</a></li>
+            <li><a th:href="@{/api/panier/monPanier}">Mon panier</a></li>
+
+            <li th:if="${isLogged}"><a th:href="@{/api/inscri/deconnexion}" class="nav-cta">Déconnexion</a></li>
+            <li th:if="${!isLogged}"><a th:href="@{/api/inscri/deconnexion}" class="nav-cta">Se connecter</a></li>
+        </ul>
+
+
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Boostez vos <span style="color:yellow;">performances</span><br>avec nos compléments</h1>
+            <p>Des compléments alimentaires de qualité. Livraison rapide, paiement simple par QR code.</p>
+            <a href="/produits" class="hero-btn" style="background:#ffd700; color:#1a1a2e; font-weight:700;">
+                Voir tous les produits
+            </a>
+        </div>
+        <div class="hero-badge">
+            <div class="icon">💪</div>
+            <p>100% naturel<br>& certifié</p>
+        </div>
+    </section>
+
+    <div class="main-content" id="main-content">
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-card"><div class="val">500+</div><div class="lbl">Clients satisfaits</div></div>
+            <div class="stat-card"><div class="val">20+</div><div class="lbl">Produits disponibles</div></div>
+            <div class="stat-card"><div class="val">4.9★</div><div class="lbl">Note moyenne</div></div>
+        </div>
+
+        <!-- PRODUITS -->
+        <p class="section-title">Nos <span>produits</span> populaires</p>
+        <div class="container">
+            <button class="scroll-btn" onclick="goLeft()">❮</button>
+            <div class="scroll-container" id="scrollBox">
+                <div th:if="${#lists.isEmpty(produits)}">AUCUN PRODUIT POUR LE MOMENT</div>
+                <div th:each="a : ${produits}" class="card">
+                    <img th:src="${a != null and a.image != null}
+                         ? @{/api/produit/imageProduit/{id}(id=${a.id})}:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=70'"/>
+                    <div class="nom_et_stock">
+                        <span th:text="${a.nom}" class="category"></span>
+                        <span class="stock-count" th:text="${a.stock}"></span>
+                    </div>
+                    <div class="rating">⭐⭐⭐⭐⭐ <span th:text="${a.note}"></span></div>
+                    <div class="price-stock">
+                        <span th:text="${a.prix}" class="price"></span> Ariary
+                    </div>
+                    <div class="panier-zone">
+                        <button class="btn-panier" onclick="ajouterPanier(this)" style="background:#1a1a2e"
+                                th:data-id="${a.id}"
+                                th:style="${a.stock <= 0} ? 'display:none' : ''">
+                            Ajouter au panier
+                        </button>
+                        <span class="limite-stock"
+                              th:style="${a.stock > 0} ? 'display:none' : ''">⚠ Stock limité</span>
+                        <span class="msg-ajoute" style="display:none;">✅ Produit ajouté !</span>
+                    </div>
+                    <button style="background:rgba(116,79,11,0.748);color:white;"
+                            onclick="voirDetail(this)"
+                            th:data-nom="${a.nom}"
+                            th:data-description="${a.description}"
+                            th:data-prix="${a.prix}"
+                            th:data-image="${a.image != null}
+                                       ? @{/api/produit/imageProduit/{id}(id=${a.id})}
+                                       : 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=70'">
+                        Voir plus
+                    </button>
+                </div>
+            </div>
+            <button class="scroll-btn" onclick="goRight()">❯</button>
+        </div>
+
+        <!-- PAIEMENT QR CODE -->
+        <p class="section-title">Paiement par <span>QR Code</span></p>
+        <div class="payment-section">
+            <div class="payment-info">
+                <h2>Simple, rapide et sécurisé</h2>
+                <p>Payez en quelques secondes grâce à notre système de paiement par QR code.</p>
+                <ul class="steps">
+                    <li><div class="step-num">1</div> Ajoutez vos produits au panier</li>
+                    <li><div class="step-num">2</div> Cliquez sur "Commander"</li>
+                    <li><div class="step-num">3</div> Scannez le QR code généré</li>
+                    <li><div class="step-num">4</div> Confirmez votre paiement mobile</li>
+                </ul>
+            </div>
+            <div class="qr-box">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=GYMfy-Demo&color=1a1a2e"/>
+                <p>Scanner pour payer</p>
+            </div>
+        </div>
+
+        <!-- ══ PUBLICATIONS COMMUNAUTÉ ══ -->
+        <p class="section-title">📸 <span>Évolutions</span> de la communauté</p>
+
+        <!-- Aucune publication -->
+        <div th:if="${#lists.isEmpty(publications)}"
+             style="background:#fff; border-radius:14px; padding:2rem;
+                    text-align:center; color:#aaa; border:1px dashed #ddd;
+                    margin-bottom:2rem;">
+            <div style="font-size:40px; margin-bottom:0.5rem;">📸</div>
+            <p>Aucune publication pour l'instant. Soyez le premier à partager votre évolution !</p>
+        </div>
+
+        <!-- Container carrousel comme les produits -->
+        <div th:if="${!#lists.isEmpty(publications)}" class="pub-container-wrapper">
+
+            <button class="scroll-btn" onclick="scrollPubs(-1)">❮</button>
+
+            <div class="pub-scroll-box" id="pubScrollBox">
+                <div th:each="pub : ${publications}" class="pub-card"
+                     th:data-pub-id="${pub.id}">
+
+                    <!-- Header user -->
+                    <div class="pub-header">
+                        <div class="pub-avatar"
+                             th:text="${pub.utilisateur.nom.substring(0,1).toUpperCase()}">F</div>
+                        <div>
+                            <div class="pub-username"
+                                 th:text="${pub.utilisateur.nom} + ' ' + ${pub.utilisateur.prenom}"></div>
+                            <div class="pub-date"
+                                 th:text="${#temporals.format(pub.datePublication,'dd/MM/yyyy')}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Photos AVANT / APRÈS -->
+                    <div class="pub-photos">
+                        <div class="pub-photo-wrap">
+                            <img th:if="${pub.photoAvant != null}"
+                                 th:src="@{/api/coaching/publication/photoAvant/{id}(id=${pub.id})}"/>
+                            <div th:if="${pub.photoAvant == null}" class="pub-no-photo">Pas de photo</div>
+                            <span class="pub-label avant">AVANT</span>
+                        </div>
+                        <div class="pub-photo-wrap">
+                            <img th:if="${pub.photoApres != null}"
+                                 th:src="@{/api/coaching/publication/photoApres/{id}(id=${pub.id})}"/>
+                            <div th:if="${pub.photoApres == null}" class="pub-no-photo">Pas de photo</div>
+                            <span class="pub-label apres">APRÈS ✨</span>
+                        </div>
+                    </div>
+
+                    <!-- Légende -->
+                    <div class="pub-legende" th:text="${pub.legende}"></div>
+
+                    <!-- ✅ Réactions — data-emoji simple, active si user a déjà réagi -->
+                    <div class="reactions-row">
+                        <button class="r-btn"
+                                th:data-pub-id="${pub.id}"
+                                data-emoji="muscle"
+                                th:classappend="${userReactions != null and userReactions[pub.id] == 'muscle'} ? ' active' : ''"
+                                onclick="reagir(this)">
+                            💪 <span class="r-count">0</span>
+                        </button>
+                        <button class="r-btn"
+                                th:data-pub-id="${pub.id}"
+                                data-emoji="feu"
+                                th:classappend="${userReactions != null and userReactions[pub.id] == 'feu'} ? ' active' : ''"
+                                onclick="reagir(this)">
+                            🔥 <span class="r-count">0</span>
+                        </button>
+                        <button class="r-btn"
+                                th:data-pub-id="${pub.id}"
+                                data-emoji="bravo"
+                                th:classappend="${userReactions != null and userReactions[pub.id] == 'bravo'} ? ' active' : ''"
+                                onclick="reagir(this)">
+                            👏 <span class="r-count">0</span>
+                        </button>
+                        <button class="r-btn"
+                                th:data-pub-id="${pub.id}"
+                                data-emoji="coeur"
+                                th:classappend="${userReactions != null and userReactions[pub.id] == 'coeur'} ? ' active' : ''"
+                                onclick="reagir(this)">
+                            ❤️ <span class="r-count">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Commentaires -->
+                    <div class="comments-zone">
+                        <div th:each="com : ${pub.commentaires}" class="comment-item">
+                            <strong th:text="${com.utilisateur.nom}"></strong>
+                            : <span th:text="${com.contenu}"></span>
+                        </div>
+                        <div class="comment-input-row">
+                            <input type="text"
+                                   th:id="'com-' + ${pub.id}"
+                                   placeholder="Commenter..."/>
+                            <button th:data-pub-id="${pub.id}"
+                                    onclick="commenter(this)">➤</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <button class="scroll-btn" onclick="scrollPubs(1)">❯</button>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-logo">GYMfy</div>
+        <p>© 2026 GYMfy — Tous droits réservés</p>
+        <p>Contact : gymfy@email.mg</p>
+    </footer>
+
+    <!-- Modal produit -->
+    <div class="modal" id="modal">
+        <div>
+            <h3 id="modalNom"></h3>
+            <img id="modalImage"/>
+            <p id="modalDesc"></p>
+            Prix: <h2 style="color:yellow" id="modalPrix"></h2>
+            <button style="background:#1a1a2e;color:white;padding:8px;cursor:pointer;"
+                    onclick="closeModal()">Fermer</button>
+        </div>
+    </div>
+
+    <script>
+        // ── Scroll produits ──
+        function goLeft()  { document.getElementById("scrollBox").scrollBy({left:-300,behavior:"smooth"}); }
+        function goRight() { document.getElementById("scrollBox").scrollBy({left:300,behavior:"smooth"}); }
+
+        // ── Scroll publications ──
+        function scrollPubs(dir) {
+            document.getElementById("pubScrollBox").scrollBy({left:dir*360,behavior:"smooth"});
+        }
+
+        // ── Modal produit ──
+        function voirDetail(btn) {
+            document.getElementById("main-content").classList.add("active");
+            document.getElementById("modal").classList.add("active");
+            document.getElementById("modalNom").innerText  = btn.getAttribute("data-nom");
+            document.getElementById("modalDesc").innerText = btn.getAttribute("data-description");
+            document.getElementById("modalPrix").innerText = btn.getAttribute("data-prix") + " Ariary";
+            document.getElementById("modalImage").src      = btn.getAttribute("data-image");
+        }
+        function closeModal() {
+            document.getElementById("main-content").classList.remove("active");
+            document.getElementById("modal").classList.remove("active");
+        }
+
+        // ── Ajouter au panier ──
+        function ajouterPanier(btn) {
+            const produitId  = btn.getAttribute("data-id");
+            const panierZone = btn.closest(".panier-zone");
+            const card       = btn.closest(".card");
+            const msgAjoute  = panierZone.querySelector(".msg-ajoute");
+            const stockCount = card.querySelector(".stock-count");
+            const limiteStock = panierZone.querySelector(".limite-stock");
+
+            fetch(`/api/panier/ajoutPanier/${produitId}`, {
+                method:"POST", headers:{"Content-Type":"application/json"}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data) return;
+                if (data.succes) {
+                    stockCount.textContent = data.nouveauStock;
+                    msgAjoute.style.display = "block";
+                    msgAjoute.style.animation = "none";
+                    msgAjoute.offsetHeight;
+                    msgAjoute.style.animation = "fadeOut 1s forwards";
+                    setTimeout(() => { msgAjoute.style.display = "none"; }, 1000);
+                    if (data.nouveauStock <= 0) {
+                        btn.style.display = "none";
+                        limiteStock.style.display = "block";
+                    }
+                } else {
+                    if (data.message === "Stock épuisé") {
+                        btn.style.display = "none";
+                        limiteStock.style.display = "block";
+                    } else {
+                        alert("Erreur : " + data.message);
+                    }
+                }
+            }).catch(() => alert("Une erreur est survenue."));
+        }
+
+        // ✅ Charger les compteurs au chargement de la page
+        window.addEventListener("load", () => {
+            document.querySelectorAll(".pub-card").forEach(card => {
+                const pubId = card.getAttribute("data-pub-id");
+                chargerCompteurs(pubId);
+            });
+        });
+
+        // ✅ Charge les compteurs depuis le serveur
+        function chargerCompteurs(pubId) {
+            fetch(`/api/coaching/publication/compteurs/${pubId}`)
+            .then(r => r.json())
+            .then(data => {
+                const card = document.querySelector(`.pub-card[data-pub-id="${pubId}"]`);
+                if (!card) return;
+                card.querySelectorAll(".r-btn").forEach(btn => {
+                    const emoji = btn.getAttribute("data-emoji");
+                    const span  = btn.querySelector(".r-count");
+                    if (span && data[emoji] !== undefined) {
+                        span.textContent = data[emoji];
+                    }
+                });
+            }).catch(() => {});
+        }
+
+        // ✅ Réaction avec toggle et changement d'emoji
+        function reagir(btn) {
+            const pubId = btn.getAttribute("data-pub-id");
+            const emoji = btn.getAttribute("data-emoji");
+
+            fetch(`/api/coaching/publication/reagir/${pubId}`, {
+                method:"POST",
+                headers:{"Content-Type":"application/x-www-form-urlencoded"},
+                body:`emoji=${encodeURIComponent(emoji)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.succes) {
+                    if (data.message === "Non connecté")
+                        alert("Vous devez être connecté pour réagir !");
+                    return;
+                }
+
+                const card = document.querySelector(`.pub-card[data-pub-id="${pubId}"]`);
+                if (!card) return;
+
+                // ✅ Met à jour tous les compteurs de cette pub
+                card.querySelectorAll(".r-btn").forEach(b => {
+                    const e    = b.getAttribute("data-emoji");
+                    const span = b.querySelector(".r-count");
+                    if (span && data[e] !== undefined) {
+                        span.textContent = data[e];
+                    }
+                    // Reset active sur tous
+                    b.classList.remove("active");
+                });
+
+                // ✅ Active seulement si le user a une réaction
+                if (data.userEmoji) {
+                    const activeBtn = card.querySelector(`[data-emoji="${data.userEmoji}"]`);
+                    if (activeBtn) activeBtn.classList.add("active");
+                }
+            });
+        }
+
+        // ✅ Commenter
+        function commenter(btn) {
+            const pubId  = btn.getAttribute("data-pub-id");
+            const input  = document.getElementById(`com-${pubId}`);
+            const contenu = input.value.trim();
+            if (!contenu) return;
+
+            fetch(`/api/coaching/publication/commenter/${pubId}`, {
+                method:"POST",
+                headers:{"Content-Type":"application/x-www-form-urlencoded"},
+                body:`contenu=${encodeURIComponent(contenu)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.succes) {
+                    const zone = btn.closest(".comment-input-row");
+                    const div  = document.createElement("div");
+                    div.className = "comment-item";
+                    div.innerHTML = `<strong>Moi</strong> : ${contenu}`;
+                    zone.parentNode.insertBefore(div, zone);
+                    input.value = "";
+                } else if (data.message === "Non connecté") {
+                    alert("Vous devez être connecté pour commenter !");
+                }
+            });
+        }
+
+
+        let currentUserId = /*[[${session.utilisateurId}]]*/ null;
+
+    // Toggle dropdown
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notification-dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        loadNotifications();
+    }
+
+// ==================== NOTIFICATIONS ====================
+
+// Charger le nombre de notifications non lues
+function updateNotificationBadge() {
+    fetch('/api/notifications/count')
+        .then(r => r.text())
+        .then(count => {
+            const badge = document.getElementById('notif-badge');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = parseInt(count) > 0 ? 'inline-block' : 'none';
+            }
+        })
+        .catch(() => {});
+}
+
+// Charger la liste des notifications
+function loadNotifications() {
+    fetch('/api/notifications')
+        .then(r => r.json())
+        .then(notifs => {
+            const list = document.getElementById('notification-list');
+            list.innerHTML = '<div class="dropdown-header">Notifications</div>';
+
+            notifs.forEach(notif => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item d-flex justify-content-between align-items-center py-2 border-bottom';
+                item.style.cursor = 'pointer';
+                item.innerHTML = `
+                    <span>${notif.message}</span>
+                `;
+                item.onclick = () => openPublication(notif.id);
+                list.appendChild(item);
+            });
+        });
+}
+
+// Ouvrir la publication + marquer comme lu
+function openPublication(notifId) {
+    fetch(`/api/notifications/${notifId}/read`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.publicationId) {
+                window.location.href = `/api/coaching/publication/${data.publicationId}`;
+            } else {
+                loadNotifications(); // Rafraîchir
+            }
+        });
+}
+
+// ════════════════════════════════════
+//   NOTIFICATIONS
+// ════════════════════════════════════
+
+// ── Toggle dropdown ──
+function toggleNotifications() {
+    const dropdown = document.getElementById("notification-dropdown");
+    const isOpen   = dropdown.style.display === "block";
+    dropdown.style.display = isOpen ? "none" : "block";
+    if (!isOpen) chargerNotifications();
+}
+
+// ── Fermer en cliquant ailleurs ──
+document.addEventListener("click", function(e) {
+    const dropdown = document.getElementById("notification-dropdown");
+    const btn      = e.target.closest("[onclick='toggleNotifications()']");
+    if (!btn && dropdown && dropdown.style.display === "block") {
+        if (!dropdown.contains(e.target)) {
+            dropdown.style.display = "none";
+        }
+    }
+});
+
+// ── Charger les notifications ──
+function chargerNotifications() {
+    fetch("/api/notifications")
+    .then(r => r.json())
+    .then(notifs => {
+        const liste = document.getElementById("notification-list");
+        const badge = document.getElementById("notif-badge");
+
+        // Met à jour le badge
+        if (notifs.length > 0) {
+            badge.textContent = notifs.length;
+            badge.style.display = "flex";
+            badge.style.alignItems = "center";
+            badge.style.justifyContent = "center";
+        } else {
+            badge.style.display = "none";
+        }
+
+        // Affiche les notifications
+        if (notifs.length === 0) {
+            liste.innerHTML = `<p style="text-align:center; color:#aaa;
+                font-size:13px; padding:1rem;">Aucune notification</p>`;
+            return;
+        }
+
+        liste.innerHTML = "";
+        notifs.forEach(notif => {
+            const div = document.createElement("div");
+            div.style.cssText = `
+                padding:10px 16px; border-bottom:1px solid #f5f5f5;
+                cursor:pointer; font-size:13px; color:#333;
+                background:${notif.lu ? '#fff' : '#f0f6ff'};
+                transition:background 0.2s;`;
+            div.onmouseover = () => div.style.background = "#e8f0fe";
+            div.onmouseout  = () => div.style.background = notif.lu ? "#fff" : "#f0f6ff";
+            div.innerHTML = `
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:20px;">💬</span>
+                    <div>
+                        <div style="font-weight:${notif.lu ? '400' : '600'};">
+                            ${notif.message}
+                        </div>
+                        <div style="font-size:11px; color:#aaa; margin-top:2px;">
+                            ${new Date(notif.dateCreation).toLocaleDateString('fr-FR')}
+                        </div>
+                    </div>
+                    ${!notif.lu ? '<span style="width:8px;height:8px;background:red;border-radius:50%;flex-shrink:0;margin-left:auto;"></span>' : ''}
+                </div>`;
+            div.onclick = () => ouvrirNotif(notif.id, notif.publicationId);
+            liste.appendChild(div);
+        });
+    }).catch(() => {});
+}
+
+
+    </script>
+    </body>
+    </html>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GYMfy — Coaching</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f5f5f5; }
+
+        /* HEADER */
+        .gymfy-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, blue 100%);
+            padding: 0 2rem; display: flex;
+            align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+        .gymfy-logo { font-size: 26px; font-weight: 700; color: yellow; letter-spacing: 2px; }
+        .gymfy-logo span { color: #fff; }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a { color: #ccc; text-decoration: none; font-size: 14px; }
+        .nav-cta { background: rgba(255,0,0,0.7); color: white !important;
+                   padding: 8px 16px; border-radius: 8px; font-weight: 500 !important; }
+
+        /* FORMULAIRE */
+        .form-wrapper {
+            max-width: 500px; margin: 3rem auto;
+            background: #fff; border-radius: 16px;
+            padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .form-wrapper h2 {
+            font-size: 22px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 1.5rem; text-align: center;
+        }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label {
+            font-size: 13px; color: #666;
+            display: block; margin-bottom: 6px; font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px 14px;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: sans-serif;
+        }
+        .form-group input:focus { outline: none; border-color: #1a1a2e; }
+        .photo-upload {
+            width: 100%; height: 120px;
+            border: 2px dashed #ddd; border-radius: 10px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer; color: #aaa; font-size: 13px;
+            gap: 8px; transition: border-color 0.2s;
+        }
+        .photo-upload:hover { border-color: #1a1a2e; color: #1a1a2e; }
+        .photo-upload input { display: none; }
+        .photo-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; display: none; }
+        .btn-suivant {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #1a1a2e, blue);
+            color: white; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 0.5rem;
+        }
+        .btn-suivant:hover { opacity: 0.9; }
+        .genre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .genre-btn {
+            padding: 12px; border: 2px solid #e0e0e0;
+            border-radius: 10px; background: #fff;
+            font-size: 14px; cursor: pointer; text-align: center; transition: all 0.2s;
+        }
+        .genre-btn.selected { border-color: #1a1a2e; background: #f0f4ff; }
+
+        /* LAYOUT COACHING */
+        .coaching-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: #1a1a2e; padding: 2rem 1rem;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1rem;
+        }
+        .sidebar-photo {
+            width: 90px; height: 90px; border-radius: 50%;
+            object-fit: cover; border: 3px solid yellow;
+        }
+        .sidebar-photo-default {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: #2e2e4e; border: 3px solid yellow;
+            display: flex; align-items: center;
+            justify-content: center; font-size: 36px;
+        }
+        .sidebar-nom { color: white; font-weight: 700; font-size: 15px; text-align: center; }
+        .sidebar-info { color: #aaa; font-size: 12px; text-align: center; line-height: 1.6; }
+        .sidebar-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.1); margin: 0.5rem 0; }
+        .sidebar-btn {
+            width: 100%; padding: 11px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ccc; border-radius: 10px; font-size: 14px;
+            cursor: pointer; display: flex; align-items: center;
+            gap: 10px; transition: all 0.2s; position: relative;
+        }
+        .sidebar-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+        .sidebar-btn.active { background: blue; color: white; border-color: blue; }
+        .notif-badge {
+            position: absolute; top: -6px; right: -6px;
+            background: red; color: white; width: 20px; height: 20px;
+            border-radius: 50%; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .notif-badge.hidden { display: none; }
+
+        /* CONTENU */
+        .coaching-content { padding: 2rem; background: #f5f5f5; }
+        .content-section { display: none; }
+        .content-section.visible { display: block; }
+
+        /* MESSAGERIE */
+        .message-box {
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); max-width: 700px;
+        }
+        .message-box h3 { font-size: 16px; font-weight: 700; color: #1a1a2e;
+                          margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 2px solid #f0f0f0; }
+        .messages-liste {
+            height: 320px; overflow-y: auto; display: flex;
+            flex-direction: column; gap: 10px;
+            padding: 0.5rem 0; margin-bottom: 1rem;
+        }
+        .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
+        .msg-user { background: #1a1a2e; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg-admin { background: #e8f0fe; color: #1a1a2e; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg-date { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
+        .msg-input-zone { display: flex; gap: 10px; }
+        .msg-input-zone input {
+            flex: 1; padding: 10px 14px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; font-family: sans-serif;
+        }
+        .msg-input-zone input:focus { outline: none; border-color: #1a1a2e; }
+        .btn-envoyer { padding: 10px 20px; background: #1a1a2e; color: white;
+                       border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+        /* PUBLICATION */
+        .pub-zone { max-width: 800px; }
+        .pub-zone h3 { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; }
+
+        .pub-form-box {
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; padding: 1.5rem;
+            margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .pub-form-box p { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; }
+
+        .photo-upload-box {
+            border: 2px dashed #ddd; border-radius: 10px;
+            cursor: pointer; overflow: hidden; transition: border-color 0.2s; min-height: 120px;
+        }
+        .photo-upload-box:hover { border-color: #1a1a2e; }
+
+        /* CARROUSEL PUBLICATIONS */
+        .pub-carrousel-wrapper { display: flex; align-items: center; gap: 10px; }
+        .pub-carrousel-scroll {
+            display: flex; gap: 16px; overflow-x: auto;
+            scrollbar-width: none; flex: 1; padding: 4px;
+        }
+        .pub-carrousel-scroll::-webkit-scrollbar { display: none; }
+        .scroll-btn-pub {
+            background: #1a1a2e; color: #00d4aa; border: 1px solid #00d4aa;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 16px;
+            cursor: pointer; flex-shrink: 0; display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        /* CARTE PUBLICATION */
+        .my-pub-card {
+            min-width: 300px; max-width: 300px;
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            flex-shrink: 0; display: flex; flex-direction: column;
+        }
+        .my-pub-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+        .my-pub-photo-wrap { position: relative; }
+        .my-pub-photo-wrap img { width: 100%; height: 130px; object-fit: cover; display: block; }
+        .my-pub-label {
+            position: absolute; bottom: 5px;
+            background: rgba(0,0,0,0.6); color: white;
+            padding: 2px 8px; border-radius: 10px;
+            font-size: 10px; font-weight: 700;
+        }
+        .my-pub-label.avant { left: 5px; }
+        .my-pub-label.apres { right: 5px; background: rgba(0,160,70,0.85); }
+
+        .my-pub-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .my-pub-legende { font-size: 12px; color: #555; }
+
+        /* Réactions */
+        .my-reactions { display: flex; gap: 5px; flex-wrap: wrap; }
+        .r-btn {
+            background: #f5f5f5; border: 1.5px solid #e0e0e0;
+            border-radius: 20px; padding: 3px 8px; font-size: 11px;
+            cursor: pointer; display: flex; align-items: center;
+            gap: 3px; transition: all 0.2s; font-family: sans-serif;
+        }
+        .r-btn:hover { background: #e8f0fe; }
+        .r-btn.active { background: #e8f0fe; border-color: #1a1a2e; font-weight: 700; }
+        .r-count { font-weight: 600; color: #1a1a2e; min-width: 10px; text-align: center; }
+
+        /* Commentaires */
+        .my-pub-comments { border-top: 1px solid #f0f0f0; padding-top: 6px; }
+        .comment-small {
+            font-size: 11px; padding: 3px 0;
+            border-bottom: 0.5px solid #f5f5f5; color: #555;
+        }
+        .comment-small strong { color: #1a1a2e; }
+        .comment-small-input { display: flex; gap: 5px; margin-top: 6px; }
+        .comment-small-input input {
+            flex: 1; padding: 5px 8px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 11px; font-family: sans-serif;
+        }
+        .comment-small-input input:focus { outline: none; border-color: #1a1a2e; }
+        .comment-small-input button {
+            padding: 5px 10px; background: #1a1a2e; color: white;
+            border: none; border-radius: 8px; font-size: 11px; cursor: pointer;
+        }
+
+        /* Actions pub */
+        .my-pub-actions { display: flex; gap: 6px; margin-top: 4px; }
+        .btn-del-pub {
+            background: #fee2e2; color: #991b1b; border: none;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; cursor: pointer;
+        }
+        .btn-del-pub:hover { background: #991b1b; color: white; }
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a2e; padding: 1.2rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer p { color: #666; font-size: 12px; }
+        .footer-logo { font-size: 18px; font-weight: 700; color: #00d4aa; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="gymfy-header">
+    <div class="gymfy-logo">GYM<span>fy</span></div>
+    <ul class="nav-links">
+        <li><a th:href="@{/api/produit/acceuil}">Accueil</a></li>
+        <li><a th:href="@{/api/panier/monPanier}">🛒 Panier</a></li>
+        <li><a th:href="@{/api/coaching}" style="color:yellow; font-weight:700;">💪 Coaching</a></li>
+        <li><a th:href="@{/api/inscri/deconnexion}" class="nav-cta">Déconnexion</a></li>
+    </ul>
+</header>
+
+<!-- ══ CAS 1 : FORMULAIRE (coaching null) ══ -->
+<div th:if="${coaching == null}" class="form-wrapper">
+    <h2>💪 Mon Profil Coaching</h2>
+    <p style="text-align:center; color:#888; font-size:13px; margin-bottom:1.5rem;">
+        Remplissez ce formulaire pour accéder à votre espace coaching personnalisé.
+    </p>
+
+    <form th:action="@{/api/coaching/sauvegarder}"
+          method="post" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label>Photo de profil <span style="color:#aaa">(optionnel)</span></label>
+            <label class="photo-upload" id="photoLabel">
+                <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this)"/>
+                <span style="font-size:32px;">📷</span>
+                <span>Cliquez pour ajouter une photo</span>
+            </label>
+            <img class="photo-preview" id="photoPreview" alt=""/>
+        </div>
+
+        <div class="form-group">
+            <label>Taille (cm)</label>
+            <input type="number" name="taille" placeholder="Ex : 175" min="100" max="250" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Poids (kg)</label>
+            <input type="number" name="poids" placeholder="Ex : 70" min="30" max="300" step="0.1" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Âge</label>
+            <input type="number" name="age" placeholder="Ex : 25" min="15" max="100" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Genre</label>
+            <input type="hidden" name="genre" id="genreInput" required/>
+            <div class="genre-grid">
+                <button type="button" class="genre-btn" onclick="selectGenre('HOMME', this)">👨 Homme</button>
+                <button type="button" class="genre-btn" onclick="selectGenre('FEMME', this)">👩 Femme</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-suivant">Suivant →</button>
+    </form>
+</div>
+
+<!-- ══ CAS 2 : PAGE COACHING (coaching rempli) ══ -->
+<div th:if="${coaching != null}" class="coaching-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div th:if="${coaching.photo != null}">
+            <img class="sidebar-photo"
+                 th:src="@{/api/coaching/photo/{id}(id=${coaching.utilisateur.id})}"
+                 alt="Photo profil"/>
+        </div>
+        <div th:if="${coaching.photo == null}" class="sidebar-photo-default">👤</div>
+
+        <div class="sidebar-nom"
+             th:text="${coaching.utilisateur.nom} + ' ' + ${coaching.utilisateur.prenom}"></div>
+
+        <div class="sidebar-info"
+             th:text="${coaching.taille} + ' cm • ' + ${coaching.poids} + ' kg • ' + ${coaching.age} + ' ans'"></div>
+        <div class="sidebar-info" th:text="${coaching.genre}"></div>
+
+        <div class="sidebar-divider"></div>
+
+        <button class="sidebar-btn active" id="btn-message" onclick="showSection('message')">
+            💬 Message
+            <span class="notif-badge"
+                  th:classappend="${notifMsg > 0} ? '' : ' hidden'"
+                  id="notif-badge-msg"
+                  th:text="${notifMsg}">0</span>
+        </button>
+
+        <button class="sidebar-btn position-relative" id="btn-publication" onclick="showSection('publication')">
+            📸 Mes Publications
+            <span id="my-pub-notif"
+                  class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle"
+                  style="display: none; font-size: 10px; padding: 3px 6px; min-width: 18px; text-align: center;">
+        !
+    </span>
+        </button>
+
+    </div>
+
+    <!-- CONTENU -->
+    <div class="coaching-content">
+
+        <!-- ── SECTION MESSAGE ── -->
+        <div class="content-section visible" id="section-message">
+            <div class="message-box">
+                <h3>💬 Message avec le coach</h3>
+                <p style="font-size:13px; color:#888; margin-bottom:1rem;">
+                    Envoyez un message à l'administrateur pour des conseils personnalisés.
+                </p>
+                <div class="messages-liste" id="messages-liste"></div>
+                <div class="msg-input-zone">
+                    <input type="text" id="msg-input"
+                           placeholder="Écrivez votre message..."
+                           onkeypress="if(event.key==='Enter') envoyerMessage()"/>
+                    <button class="btn-envoyer" onclick="envoyerMessage()">Envoyer ➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION PUBLICATION ── -->
+        <div class="content-section" id="section-publication">
+            <div class="pub-zone">
+                <h3>📸 Mes Publications</h3>
+
+                <!-- Formulaire nouvelle pub -->
+                <div class="pub-form-box">
+                    <p>➕ Nouvelle publication</p>
+                    <form th:action="@{/api/coaching/publication/publier}"
+                          method="post" enctype="multipart/form-data">
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+
+                            <!-- Photo AVANT -->
+                            <div>
+                                <label style="font-size:12px; font-weight:700; color:#666;
+                                              display:block; margin-bottom:6px;">📸 Photo AVANT</label>
+                                <div class="photo-upload-box"
+                                     onclick="document.getElementById('pub-avant').click()">
+                                    <input type="file" name="photoAvant" id="pub-avant"
+                                           accept="image/*" style="display:none;"
+                                           onchange="previewPubPhoto(this,'prev-avant','ph-avant')"/>
+                                    <img id="prev-avant"
+                                         style="width:100%; height:120px; object-fit:cover;
+                                                border-radius:8px; display:none;"/>
+                                    <div id="ph-avant"
+                                         style="height:120px; display:flex; flex-direction:column;
+                                                align-items:center; justify-content:center;
+                                                color:#aaa; gap:6px;">
+                                        <span style="font-size:24px;">📷</span>
+                                        <span style="font-size:11px;">Photo avant</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Photo APRÈS -->
+                            <div>
+                                <label style="font-size:12px; font-weight:700; color:#666;
+                                              display:block; margin-bottom:6px;">✨ Photo APRÈS</label>
+                                <div class="photo-upload-box"
+                                     onclick="document.getElementById('pub-apres').click()">
+                                    <input type="file" name="photoApres" id="pub-apres"
+                                           accept="image/*" style="display:none;"
+                                           onchange="previewPubPhoto(this,'prev-apres','ph-apres')"/>
+                                    <img id="prev-apres"
+                                         style="width:100%; height:120px; object-fit:cover;
+                                                border-radius:8px; display:none;"/>
+                                    <div id="ph-apres"
+                                         style="height:120px; display:flex; flex-direction:column;
+                                                align-items:center; justify-content:center;
+                                                color:#aaa; gap:6px;">
+                                        <span style="font-size:24px;">✨</span>
+                                        <span style="font-size:11px;">Photo après</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="text" name="legende"
+                               placeholder="Légende (ex: 3 mois avec fyGYM 💪)"
+                               style="width:100%; padding:10px 14px; border:1px solid #ddd;
+                                      border-radius:8px; font-size:14px; margin-bottom:1rem;"/>
+                        <button type="submit" class="btn-suivant" style="padding:11px;">
+                            Publier 🚀
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Mes publications en carrousel -->
+                <div th:if="${!#lists.isEmpty(publications)}">
+                    <p style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:1rem;">
+                        Mes publications (<span th:text="${#lists.size(publications)}">0</span>)
+                    </p>
+
+                    <div class="pub-carrousel-wrapper">
+                        <button class="scroll-btn-pub" onclick="scrollMyPub(-1)">❮</button>
+
+                        <div class="pub-carrousel-scroll" id="myPubScroll">
+                            <div th:each="pub : ${publications}"
+                                 class="my-pub-card"
+                                 th:data-pub-id="${pub.id}">
+
+                                <!-- Photos AVANT / APRÈS -->
+                                <div class="my-pub-photos">
+                                    <div class="my-pub-photo-wrap">
+                                        <img th:if="${pub.photoAvant != null}"
+                                             th:src="@{/api/coaching/publication/photoAvant/{id}(id=${pub.id})}"
+                                             alt="Avant"/>
+                                        <div th:if="${pub.photoAvant == null}"
+                                             style="width:100%; height:130px; background:#f0f0f0;
+                                                    display:flex; align-items:center;
+                                                    justify-content:center; color:#bbb; font-size:11px;">
+                                            Pas de photo
+                                        </div>
+                                        <span class="my-pub-label avant">AVANT</span>
+                                    </div>
+                                    <div class="my-pub-photo-wrap">
+                                        <img th:if="${pub.photoApres != null}"
+                                             th:src="@{/api/coaching/publication/photoApres/{id}(id=${pub.id})}"
+                                             alt="Après"/>
+                                        <div th:if="${pub.photoApres == null}"
+                                             style="width:100%; height:130px; background:#f0f0f0;
+                                                    display:flex; align-items:center;
+                                                    justify-content:center; color:#bbb; font-size:11px;">
+                                            Pas de photo
+                                        </div>
+                                        <span class="my-pub-label apres">APRÈS</span>
+                                    </div>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="my-pub-body">
+                                    <p class="my-pub-legende" th:text="${pub.legende}"></p>
+
+                                    <!-- ✅ Réactions — data-emoji sans th: -->
+                                    <div class="my-reactions">
+                                        <button class="r-btn"
+                                                th:data-pub-id="${pub.id}"
+                                                data-emoji="muscle"
+                                                onclick="reagir(this)">
+                                            💪 <span class="r-count">0</span>
+                                        </button>
+                                        <button class="r-btn"
+                                                th:data-pub-id="${pub.id}"
+                                                data-emoji="feu"
+                                                onclick="reagir(this)">
+                                            🔥 <span class="r-count">0</span>
+                                        </button>
+                                        <button class="r-btn"
+                                                th:data-pub-id="${pub.id}"
+                                                data-emoji="bravo"
+                                                onclick="reagir(this)">
+                                            👏 <span class="r-count">0</span>
+                                        </button>
+                                        <button class="r-btn"
+                                                th:data-pub-id="${pub.id}"
+                                                data-emoji="coeur"
+                                                onclick="reagir(this)">
+                                            ❤️ <span class="r-count">0</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Commentaires -->
+                                    <div class="my-pub-comments">
+                                        <div th:each="com : ${pub.commentaires}" class="comment-small">
+                                            <strong th:text="${com.utilisateur.nom}"></strong>
+                                            : <span th:text="${com.contenu}"></span>
+                                        </div>
+                                        <div class="comment-small-input">
+                                            <input type="text"
+                                                   th:id="'mycom-' + ${pub.id}"
+                                                   placeholder="Commenter..."/>
+                                            <button th:data-pub-id="${pub.id}"
+                                                    onclick="commenterMaPub(this)">➤</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- ✅ Actions — seulement suppression -->
+                                    <div class="my-pub-actions">
+                                        <form th:action="@{/api/coaching/publication/supprimer/{id}(id=${pub.id})}"
+                                              method="post">
+                                            <button type="submit" class="btn-del-pub"
+                                                    onclick="return confirm('Supprimer ?')">
+                                                🗑 Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="scroll-btn-pub" onclick="scrollMyPub(1)">❯</button>
+                    </div>
+                </div>
+
+                <!-- Si aucune publication -->
+                <div th:if="${#lists.isEmpty(publications)}"
+                     style="text-align:center; color:#aaa; padding:2rem;
+                            background:#fff; border-radius:14px; border:1px dashed #ddd;">
+                    <div style="font-size:40px; margin-bottom:0.5rem;">📸</div>
+                    <p>Vous n'avez pas encore de publication.</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-logo">GYMfy</div>
+    <p>© 2026 GYMfy — Tous droits réservés</p>
+    <p>Contact : gymfy@email.mg</p>
+</footer>
+
+<script>
+    // ── Genre ──
+    function selectGenre(val, btn) {
+        document.querySelectorAll(".genre-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        document.getElementById("genreInput").value = val;
+    }
+
+    // ── Preview photo profil ──
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById("photoLabel").style.display = "none";
+                const img = document.getElementById("photoPreview");
+                img.src = e.target.result;
+                img.style.display = "block";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ── Preview photos publication ──
+    function previewPubPhoto(input, previewId, placeholderId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById(placeholderId).style.display = "none";
+                const img = document.getElementById(previewId);
+                img.src = e.target.result;
+                img.style.display = "block";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ── Sidebar navigation ──
+    function showSection(section) {
+        document.querySelectorAll(".content-section").forEach(s => s.classList.remove("visible"));
+        document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById("section-" + section).classList.add("visible");
+        document.getElementById("btn-" + section).classList.add("active");
+        if (section === "message") {
+            const badge = document.getElementById("notif-badge-msg");
+            if (badge) badge.classList.add("hidden");
+            chargerMessages();
+        }
+        if (section === "publication") {
+            // Charge les compteurs de mes publications
+            document.querySelectorAll(".my-pub-card").forEach(card => {
+                chargerCompteursMaPub(card.getAttribute("data-pub-id"));
+            });
+        }
+    }
+
+    // ── Charger messages ──
+    function chargerMessages() {
+        fetch("/api/coaching/message/liste")
+        .then(r => r.json())
+        .then(messages => {
+            const liste = document.getElementById("messages-liste");
+            if (!liste) return;
+            liste.innerHTML = "";
+            if (!messages || messages.length === 0) {
+                liste.innerHTML = `<div style="text-align:center;color:#aaa;margin:auto;font-size:13px;">
+                    Aucun message pour l'instant.</div>`;
+                return;
+            }
+            messages.forEach(msg => {
+                const isUser = msg.expediteur === "USER";
+                const div = document.createElement("div");
+                div.style.alignSelf = isUser ? "flex-end" : "flex-start";
+                div.innerHTML = `
+                    <div class="msg-bubble ${isUser ? 'msg-user' : 'msg-admin'}">${msg.contenu}</div>
+                    <div class="msg-date">${msg.dateEnvoi}</div>`;
+                liste.appendChild(div);
+            });
+            liste.scrollTop = liste.scrollHeight;
+        }).catch(() => {});
+    }
+
+    // ── Envoyer message ──
+    function envoyerMessage() {
+        const input   = document.getElementById("msg-input");
+        const contenu = input.value.trim();
+        if (!contenu) return;
+        fetch("/api/coaching/message/envoyer", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: `contenu=${encodeURIComponent(contenu)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.succes) { input.value = ""; chargerMessages(); }
+        });
+    }
+
+    // ── Charger compteurs d'une pub ──
+    function chargerCompteursMaPub(pubId) {
+        fetch(`/api/coaching/publication/compteurs/${pubId}`)
+        .then(r => r.json())
+        .then(data => {
+            const card = document.querySelector(`.my-pub-card[data-pub-id="${pubId}"]`);
+            if (!card) return;
+            card.querySelectorAll(".r-btn").forEach(btn => {
+                const e    = btn.getAttribute("data-emoji");
+                const span = btn.querySelector(".r-count");
+                if (span && data[e] !== undefined) span.textContent = data[e];
+            });
+        }).catch(() => {});
+    }
+
+    // ── Réaction ──
+    function reagir(btn) {
+        const pubId = btn.getAttribute("data-pub-id");
+        const emoji = btn.getAttribute("data-emoji");
+
+        fetch(`/api/coaching/publication/reagir/${pubId}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: `emoji=${encodeURIComponent(emoji)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.succes) return;
+            // ✅ Met à jour les compteurs
+            const card = document.querySelector(`.my-pub-card[data-pub-id="${pubId}"]`);
+            if (!card) return;
+            card.querySelectorAll(".r-btn").forEach(b => {
+                const e    = b.getAttribute("data-emoji");
+                const span = b.querySelector(".r-count");
+                if (span && data[e] !== undefined) span.textContent = data[e];
+                b.classList.remove("active");
+            });
+            // ✅ Active le bon bouton
+            if (data.userEmoji) {
+                const activeBtn = card.querySelector(`[data-emoji="${data.userEmoji}"]`);
+                if (activeBtn) activeBtn.classList.add("active");
+            }
+        });
+    }
+
+    // ── Commenter une de mes pubs ──
+    function commenterMaPub(btn) {
+        const pubId  = btn.getAttribute("data-pub-id");
+        const input  = document.getElementById(`mycom-${pubId}`);
+        const contenu = input.value.trim();
+        if (!contenu) return;
+
+        fetch(`/api/coaching/publication/commenter/${pubId}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: `contenu=${encodeURIComponent(contenu)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.succes) {
+                const zone = btn.closest(".comment-small-input");
+                const div  = document.createElement("div");
+                div.className = "comment-small";
+                div.innerHTML = `<strong>Moi</strong> : ${contenu}`;
+                zone.parentNode.insertBefore(div, zone);
+                input.value = "";
+            }
+        });
+    }
+
+    // ── Scroll carrousel mes pubs ──
+    function scrollMyPub(dir) {
+        const box = document.getElementById("myPubScroll");
+        if (box) box.scrollBy({ left: dir * 320, behavior: "smooth" });
+    }
+
+    // ── Polling notifications ──
+    function pollNotifications() {
+        fetch("/api/coaching/message/notif")
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById("notif-badge-msg");
+            if (!badge) return;
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.classList.remove("hidden");
+                const sectionMsg = document.getElementById("section-message");
+                if (sectionMsg && sectionMsg.classList.contains("visible")) {
+                    chargerMessages();
+                }
+            } else {
+                badge.classList.add("hidden");
+            }
+        }).catch(() => {});
+    }
+
+    // ── Au chargement ──
+    window.addEventListener("load", () => {
+        chargerMessages();
+        if (document.getElementById("notif-badge-msg")) {
+            setInterval(pollNotifications, 5000);
+        }
+    });
+
+// Vérifier s'il y a de nouvelles notifications sur ses publications
+function checkMyPublicationsNotifications() {
+    fetch('/api/notifications/my-publications')
+        .then(response => response.json())
+        .then(hasNew => {
+            const badge = document.getElementById('my-pub-notif');
+            if (badge) {
+                badge.style.display = hasNew ? 'inline-block' : 'none';
+            }
+        })
+        .catch(() => {});
+}
+
+// Appeler cette fonction au chargement et toutes les 8 secondes
+document.addEventListener('DOMContentLoaded', () => {
+    checkMyPublicationsNotifications();
+    setInterval(checkMyPublicationsNotifications, 8000);
+});
+</script>
+
+</body>
+</html>

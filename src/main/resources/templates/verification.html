@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vérification — GYMfy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --navy:        #0b1629;
+          --navy-mid:    #0f2044;
+          --navy-light:  #1a3a6b;
+          --blue:        #2563eb;
+          --blue-light:  #3b82f6;
+          --blue-glow:   #60a5fa;
+          --blue-pale:   #c5d5f0;
+          --accent:      #f59e0b;
+          --accent-light:#fbbf24;
+          --white:       #e8edf5;
+          --off-white:   #d4dbe8;
+          --gray:        #64748b;
+          --border:      #cbd5e1;
+          --error:       #ef4444;
+          --success:     #22c55e;
+          --dark:        #0f172a;
+        }
+
+        body {
+          font-family: 'DM Sans', sans-serif;
+          background: var(--off-white);
+          min-height: 100vh;
+          display: flex;
+          overflow-x: hidden;
+        }
+
+        .progress-bar {
+          position: fixed; top: 0; left: 0; height: 3px;
+          background: linear-gradient(90deg, var(--blue), var(--blue-glow), var(--accent));
+          border-radius: 0 2px 2px 0;
+          transition: width 0.5s cubic-bezier(.4,0,.2,1);
+          z-index: 200;
+          box-shadow: 0 0 12px rgba(59,130,246,0.6);
+          pointer-events: none;
+          width: 100%;
+        }
+
+        /* ══════════════════════════════
+           LEFT PANEL — GYM PHOTO BG
+        ══════════════════════════════ */
+        .left-panel {
+          width: 46%;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 52px 56px;
+          overflow: hidden;
+        }
+
+        .left-panel::before {
+          content: '';
+          position: absolute; inset: 0;
+          background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80');
+          background-size: cover;
+          background-position: center;
+          filter: brightness(0.35) saturate(0.8);
+          z-index: 0;
+        }
+
+        .left-panel::after {
+          content: '';
+          position: absolute; inset: 0;
+          background:
+            linear-gradient(160deg, rgba(11,22,41,0.85) 0%, rgba(15,32,68,0.7) 50%, rgba(37,99,235,0.25) 100%),
+            radial-gradient(ellipse 70% 50% at 10% 100%, rgba(37,99,235,0.4) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 40% at 90% 5%,  rgba(245,158,11,0.15) 0%, transparent 50%);
+          z-index: 1;
+        }
+
+        .left-panel > * { position: relative; z-index: 2; }
+
+        .brand-logo { display: flex; align-items: center; gap: 12px; }
+
+        .brand-icon {
+          width: 46px; height: 46px;
+          background: var(--accent);
+          border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px;
+          box-shadow: 0 4px 20px rgba(245,158,11,0.4);
+        }
+
+        .brand-name {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 32px; font-weight: 800;
+          color: var(--white);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+
+        .brand-name span { color: var(--accent); }
+
+        .brand-tagline {
+          font-size: 11px; color: rgba(255,255,255,0.45);
+          letter-spacing: 0.2em; text-transform: uppercase; margin-top: 2px;
+        }
+
+        .panel-hero h1 {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: clamp(40px, 4.5vw, 58px); font-weight: 800;
+          color: var(--white); line-height: 1.05;
+          margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.03em;
+        }
+
+        .panel-hero h1 em {
+          font-style: italic; color: var(--accent-light);
+          display: block;
+        }
+
+        .panel-hero p {
+          font-size: 14px; color: rgba(255,255,255,0.6);
+          line-height: 1.7; max-width: 340px;
+        }
+
+        .benefits { display: flex; flex-direction: column; gap: 14px; }
+
+        .benefit-item { display: flex; align-items: center; gap: 14px; }
+
+        .benefit-icon {
+          width: 38px; height: 38px;
+          background: rgba(37,99,235,0.25);
+          border: 1px solid rgba(96,165,250,0.3);
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 17px; flex-shrink: 0;
+          backdrop-filter: blur(4px);
+        }
+
+        .benefit-text { color: rgba(255,255,255,0.75); font-size: 13px; line-height: 1.45; }
+        .benefit-text strong { color: var(--white); font-weight: 600; }
+
+        .panel-badge {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 100px; padding: 8px 16px;
+          font-size: 12px; color: rgba(255,255,255,0.7);
+          backdrop-filter: blur(6px);
+        }
+
+        .panel-badge .dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: var(--success);
+          box-shadow: 0 0 6px var(--success);
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%,100% { opacity:1; transform:scale(1); }
+          50%      { opacity:.6; transform:scale(1.3); }
+        }
+
+        /* ══════════════════════════════
+           RIGHT PANEL
+        ══════════════════════════════ */
+        .right-panel {
+          flex: 1; display: flex; align-items: center;
+          justify-content: center; padding: 52px 60px;
+          overflow-y: auto; position: relative;
+          background: #c8d2e4;
+        }
+
+        .right-panel::before {
+          content: '';
+          position: absolute; top: -120px; right: -120px;
+          width: 500px; height: 500px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        .form-container {
+          width: 100%; max-width: 460px;
+          position: relative; z-index: 2;
+          background: rgba(210,220,238,0.95);
+          border-radius: 24px;
+          padding: 44px 44px 48px;
+          border: 1px solid rgba(37,99,235,0.12);
+          box-shadow:
+            0 4px 6px rgba(11,22,41,0.04),
+            0 10px 30px rgba(37,99,235,0.10),
+            0 30px 60px rgba(11,22,41,0.12),
+            0 0 0 1px rgba(255,255,255,0.8) inset;
+          backdrop-filter: blur(12px);
+          text-align: center;
+        }
+
+        .mail-icon {
+          width: 72px; height: 72px;
+          background: var(--blue-pale);
+          border: 1.5px solid rgba(37,99,235,0.2);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 22px;
+          font-size: 30px;
+        }
+
+        .form-header h2 {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 32px; font-weight: 800; color: var(--dark);
+          letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.1;
+          margin-bottom: 10px;
+        }
+
+        .form-header p {
+          font-size: 13.5px; color: var(--gray); line-height: 1.6;
+          max-width: 340px; margin: 0 auto 32px;
+        }
+
+        .form-header p strong { color: var(--dark); }
+
+        /* ── OTP INPUTS ── */
+        .otp-row {
+          display: flex; gap: 10px; justify-content: center;
+          margin-bottom: 22px;
+        }
+
+        .otp-input {
+          width: 54px; height: 64px;
+          text-align: center;
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 30px; font-weight: 800; color: var(--dark);
+          border: 1.5px solid var(--border);
+          border-radius: 12px;
+          background: #dce4f0;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        }
+
+        .otp-input:focus {
+          border-color: var(--blue);
+          box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
+          transform: translateY(-2px);
+        }
+
+        .otp-input.filled { border-color: var(--success); }
+
+        .otp-input.error {
+          border-color: var(--error);
+          box-shadow: 0 0 0 4px rgba(239,68,68,0.10);
+        }
+
+        @keyframes shake {
+          0%,100%{ transform:translateX(0) }
+          15%    { transform:translateX(-7px) }
+          30%    { transform:translateX(6px) }
+          45%    { transform:translateX(-5px) }
+          60%    { transform:translateX(4px) }
+          75%    { transform:translateX(-2px) }
+        }
+        .shake { animation: shake 0.42s ease; }
+
+        /* ── ERROR / RESEND ── */
+        .field-error {
+          font-size: 13px; color: var(--error); margin-bottom: 18px;
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+
+        .resend-row {
+          font-size: 13px; color: var(--gray); margin-top: 6px;
+        }
+
+        .resend-row a {
+          color: var(--blue); text-decoration: none; font-weight: 600;
+        }
+        .resend-row a:hover { text-decoration: underline; }
+
+        .resend-row.disabled a {
+          color: var(--gray); pointer-events: none; text-decoration: none;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-primary {
+          width: 100%; height: 50px;
+          background: var(--blue); color: var(--white);
+          border: none; border-radius: 12px;
+          font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+          letter-spacing: 0.03em; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          margin-top: 6px;
+          transition: background 0.25s, transform 0.15s, box-shadow 0.25s;
+        }
+        .btn-primary:hover {
+          background: var(--blue-light);
+          box-shadow: 0 8px 28px rgba(37,99,235,0.38);
+          transform: translateY(-1px);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .back-link {
+          display: block; margin-top: 22px; font-size: 13px;
+          color: var(--gray); text-decoration: none;
+        }
+        .back-link:hover { color: var(--blue); text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 960px) {
+          .left-panel { display: none; }
+          .right-panel { padding: 40px 24px; background: var(--navy); }
+          .form-container { box-shadow: 0 20px 60px rgba(11,22,41,0.4); }
+        }
+
+        @media (max-width: 480px) {
+          .right-panel { padding: 24px 16px; }
+          .form-container { padding: 32px 20px 36px; border-radius: 18px; }
+          .otp-input { width: 42px; height: 54px; font-size: 24px; }
+          .otp-row { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar"></div>
+
+<!-- ════ LEFT PANEL ════ -->
+<div class="left-panel">
+    <div class="brand">
+        <div class="brand-logo">
+            <div class="brand-icon">🏋️</div>
+            <div>
+                <div class="brand-name">GYM<span>fy</span></div>
+                <div class="brand-tagline">Performance & Nutrition</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-hero">
+        <h1>Plus qu'une<br/><em>étape</em><br/>avant l'accès</h1>
+        <p>Confirmez votre adresse e-mail pour sécuriser votre compte et débloquer votre catalogue de compléments certifiés.</p>
+    </div>
+
+    <div class="benefits">
+        <div class="benefit-item">
+            <div class="benefit-icon">🔒</div>
+            <div class="benefit-text"><strong>Compte sécurisé</strong><br/>Vérification en deux étapes</div>
+        </div>
+        <div class="benefit-item">
+            <div class="benefit-icon">⏱️</div>
+            <div class="benefit-text"><strong>Code valable 10 minutes</strong><br/>Vérifiez vos spams si besoin</div>
+        </div>
+    </div>
+
+    <div class="panel-badge">
+        <div class="dot"></div>
+        +12 000 athlètes nous font confiance
+    </div>
+</div>
+
+<!-- ════ RIGHT PANEL ════ -->
+<div class="right-panel">
+    <div class="form-container">
+
+        <div class="mail-icon">📩</div>
+
+        <div class="form-header">
+            <h2>Vérifiez votre e-mail</h2>
+            <p>
+                Nous avons envoyé un code à 6 chiffres à
+                <strong th:if="${email}" th:text="${email}">votre adresse e-mail</strong>
+                <span th:unless="${email}"><strong>votre adresse e-mail</strong></span>.
+                Saisissez-le ci-dessous pour activer votre compte.
+            </p>
+        </div>
+
+        <form id="verifForm" action="/verification" method="post">
+
+            <div class="otp-row" id="otpRow">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" autocomplete="one-time-code" data-index="0"/>
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" data-index="1"/>
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" data-index="2"/>
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" data-index="3"/>
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" data-index="4"/>
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-input" data-index="5"/>
+            </div>
+
+            <input type="hidden" name="code" id="codeHidden"/>
+
+            <div class="field-error" th:if="${erreur}" th:text="${erreur}">
+                Code de vérification incorrect.
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                Vérifier le code
+            </button>
+
+            <div class="resend-row" id="resendRow">
+                Vous n'avez rien reçu ? <a href="#" id="resendLink">Renvoyer le code</a>
+                <span id="resendTimer"></span>
+            </div>
+        </form>
+
+        <a href="/api/inscri/inscription" class="back-link">← Retour à l'inscription</a>
+
+    </div>
+</div>
+
+<script>
+    const inputs = Array.from(document.querySelectorAll('.otp-input'));
+    const hiddenCode = document.getElementById('codeHidden');
+    const form = document.getElementById('verifForm');
+
+    function updateHidden() {
+        hiddenCode.value = inputs.map(i => i.value).join('');
+    }
+
+    function autoSubmitIfComplete() {
+        updateHidden();
+        if (hiddenCode.value.length === 6 && /^\d{6}$/.test(hiddenCode.value)) {
+            form.submit();
+        }
+    }
+
+    inputs.forEach((input, idx) => {
+        // Empêche la saisie de tout sauf des chiffres
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^0-9]/g, '').slice(0, 1);
+
+            input.classList.toggle('filled', input.value !== '');
+            input.classList.remove('error');
+
+            if (input.value && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            }
+
+            autoSubmitIfComplete();
+        });
+
+        // Backspace -> revient au champ précédent
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && idx > 0) {
+                inputs[idx - 1].focus();
+            }
+        });
+
+        // Gère le collage d'un code complet (ex: depuis un SMS/email)
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            if (!pasted) return;
+
+            pasted.split('').slice(0, inputs.length).forEach((char, i) => {
+                inputs[i].value = char;
+                inputs[i].classList.add('filled');
+            });
+
+            const next = Math.min(pasted.length, inputs.length) - 1;
+            inputs[Math.max(next, 0)].focus();
+
+            autoSubmitIfComplete();
+        });
+    });
+
+    // Si une erreur est affichée par le serveur, on met les cases en rouge + petite secousse
+    window.addEventListener('DOMContentLoaded', () => {
+        const errorBox = document.querySelector('.field-error');
+        if (errorBox) {
+            inputs.forEach(i => {
+                i.classList.add('error');
+                i.value = '';
+                i.classList.remove('filled');
+            });
+            document.getElementById('otpRow').classList.add('shake');
+            inputs[0].focus();
+        } else {
+            inputs[0].focus();
+        }
+    });
+
+    // Avant soumission manuelle (clic sur le bouton)
+    form.addEventListener('submit', (e) => {
+        updateHidden();
+        if (hiddenCode.value.length !== 6) {
+            e.preventDefault();
+            inputs[0].focus();
+        }
+    });
+
+    // ── Renvoi du code (compte à rebours simple, à adapter avec un appel serveur) ──
+    const resendLink = document.getElementById('resendLink');
+    const resendTimer = document.getElementById('resendTimer');
+    const resendRow = document.getElementById('resendRow');
+
+    resendLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Ici tu peux faire un appel POST/fetch vers un endpoint /renvoyer-code
+        let seconds = 60;
+        resendRow.classList.add('disabled');
+        resendTimer.textContent = ' (' + seconds + 's)';
+
+        const interval = setInterval(() => {
+            seconds--;
+            resendTimer.textContent = ' (' + seconds + 's)';
+            if (seconds <= 0) {
+                clearInterval(interval);
+                resendRow.classList.remove('disabled');
+                resendTimer.textContent = '';
+            }
+        }, 1000);
+    });
+</script>
+
+</body>
+</html>

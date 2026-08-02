@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GYMfy — Confirmation de commande</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f5f5f5; }
+
+        .gymfy-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, blue 100%);
+            padding: 0 2rem;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .gymfy-logo { font-size: 26px; font-weight: 700; color: yellow; letter-spacing: 2px; }
+        .gymfy-logo span { color: #fff; }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a { color: #ccc; text-decoration: none; font-size: 14px; }
+        .nav-cta { background: rgba(255,0,0,0.7); color: white !important;
+                   padding: 8px 16px; border-radius: 8px; font-weight: 500 !important; }
+
+        .page-title {
+            max-width: 1100px; margin: 2rem auto 1rem;
+            padding: 0 1.5rem;
+            font-size: 24px; font-weight: 700; color: #1a1a2e;
+        }
+        .page-title span { color: blue; }
+
+        .commande-wrapper {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+            display: flex; flex-direction: column; gap: 1.2rem;
+        }
+
+        /* ÉTAPES */
+        .etapes { display: flex; align-items: center; }
+        .etape {
+            font-size: 13px; font-weight: 600;
+            padding: 8px 16px; border-radius: 20px;
+            background: #e0e0e0; color: #999;
+        }
+        .etape.active { background: #1a1a2e; color: white; }
+        .etape.done   { background: #d1fae5; color: #065f46; }
+        .etape-line   { flex: 1; height: 2px; background: #e0e0e0; }
+        .etape-line.done { background: #065f46; }
+
+        /* ══ LAYOUT 2 COLONNES ══ */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .col-gauche { display: flex; flex-direction: column; gap: 1.2rem; }
+        .col-droite {
+            display: flex; flex-direction: column; gap: 1rem;
+            position: sticky; top: 1rem;
+        }
+
+        /* RÉSUMÉ */
+        .resume-card {
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .resume-card h3 {
+            font-size: 16px; font-weight: 700; color: #1a1a2e;
+            margin-bottom: 1rem; padding-bottom: 0.8rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .resume-item {
+            display: flex; justify-content: space-between;
+            font-size: 14px; color: #555;
+            padding: 8px 0; border-bottom: 0.5px solid #f5f5f5;
+        }
+        .resume-item:last-child { border-bottom: none; }
+        .resume-total {
+            display: flex; justify-content: space-between;
+            font-size: 18px; font-weight: 700; color: #1a1a2e;
+            margin-top: 12px; padding-top: 12px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .resume-total span:last-child { color: blue; }
+
+        /* BOUTONS DROITE */
+        .btn-confirmer {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #1a1a2e, blue);
+            color: white; border: none;
+            border-radius: 12px; font-size: 15px;
+            font-weight: 700; cursor: pointer;
+            display: none; transition: opacity 0.2s;
+        }
+        .btn-confirmer:hover { opacity: 0.9; }
+        .btn-confirmer.visible { display: block; }
+
+        .btn-retour {
+            width: 100%; padding: 12px;
+            background: transparent; color: #1a1a2e;
+            border: 1px solid #1a1a2e;
+            border-radius: 12px; font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-retour:hover { background: #f5f5f5; }
+
+        /* CHOIX */
+        .choix-title {
+            font-size: 16px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 0.8rem;
+        }
+        .choix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .choix-card {
+            background: #fff; border-radius: 14px;
+            border: 2px solid #e0e0e0;
+            padding: 1.2rem; text-align: center;
+            cursor: pointer; transition: all 0.25s;
+        }
+        .choix-card:hover {
+            border-color: #1a1a2e;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .choix-card.selected {
+            border-color: #1a1a2e;
+            background: #f0f4ff;
+        }
+        .choix-card .icone { font-size: 38px; margin-bottom: 10px; }
+        .choix-card h4 {
+            font-size: 14px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 6px;
+        }
+        .choix-card p { font-size: 12px; color: #777; line-height: 1.5; }
+        .choix-card .badge-choix {
+            display: inline-block; margin-top: 8px;
+            font-size: 11px; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+            background: #e0e0e0; color: #999;
+        }
+        .choix-card.selected .badge-choix {
+            background: #1a1a2e; color: white;
+        }
+
+        /* CONTENU LIVRAISON */
+        .livraison-content {
+            display: none;
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            animation: fadeIn 0.3s ease;
+        }
+        .livraison-content.visible { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .livraison-content h4 {
+            font-size: 15px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 1rem;
+        }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label {
+            font-size: 13px; color: #666;
+            display: block; margin-bottom: 6px; font-weight: 500;
+        }
+        .input-group input {
+            width: 100%; padding: 10px 14px;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: sans-serif;
+        }
+        .input-group input:focus {
+            outline: none; border-color: #1a1a2e;
+        }
+
+        /* CARTE GOOGLE MAPS */
+        .map-zone {
+            margin-top: 1rem;
+        }
+        .map-zone-label {
+            font-size: 13px; color: #666;
+            margin-bottom: 6px; font-weight: 500;
+        }
+        #map {
+            width: 100%; height: 300px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+        }
+        .coords-info {
+            display: flex; gap: 1rem;
+            margin-top: 8px;
+            font-size: 12px; color: #555;
+        }
+        .coords-info span strong { color: #1a1a2e; }
+
+        /* CONTENU RETRAIT */
+        .retrait-content {
+            display: none;
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0; padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            animation: fadeIn 0.3s ease;
+        }
+        .retrait-content.visible { display: block; }
+
+        .retrait-info {
+            display: flex; gap: 1rem; align-items: flex-start;
+            background: #f8f9fa; border-radius: 10px;
+            padding: 1rem; margin-bottom: 1rem;
+        }
+        .retrait-info .icone-boutique { font-size: 36px; flex-shrink: 0; }
+        .retrait-info div h5 {
+            font-size: 14px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 4px;
+        }
+        .retrait-info div p { font-size: 13px; color: #666; line-height: 1.6; }
+
+        .horaires {
+            background: #fff3cd; border-radius: 8px;
+            padding: 12px 16px; font-size: 13px;
+            color: #856404; border-left: 4px solid #ffc107;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a2e; padding: 1.2rem 2rem;
+            display: flex; align-items: center;
+            justify-content: space-between;
+        }
+        .footer p { color: #666; font-size: 12px; }
+        .footer-logo { font-size: 18px; font-weight: 700;
+                       color: #00d4aa; letter-spacing: 2px; }
+
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .col-droite { position: static; }
+            .choix-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="gymfy-header">
+    <div class="gymfy-logo">GYM<span>fy</span></div>
+    <ul class="nav-links">
+        <li><a th:href="@{/api/produit/acceuil}">Accueil</a></li>
+        <li><a th:href="@{/api/panier/monPanier}">🛒 Mon Panier</a></li>
+        <li><a th:href="@{/api/inscri/deconnexion}" class="nav-cta">Déconnexion</a></li>
+    </ul>
+</header>
+
+<!-- TITRE -->
+<div class="page-title">📦 <span>Confirmation</span> de commande</div>
+
+<div class="commande-wrapper">
+
+    <!-- ÉTAPES -->
+    <div class="etapes">
+        <div class="etape done">✓ Panier</div>
+        <div class="etape-line done"></div>
+        <div class="etape active">📦 Livraison</div>
+        <div class="etape-line"></div>
+        <div class="etape">💳 Paiement</div>
+    </div>
+
+    <!-- ══ LAYOUT 2 COLONNES ══ -->
+    <div class="main-grid">
+
+        <!-- ── COLONNE GAUCHE ── -->
+        <div class="col-gauche">
+
+            <!-- CHOIX MODE -->
+            <div>
+                <div class="choix-title">
+                    Choisissez votre mode de réception :
+                </div>
+                <div class="choix-grid">
+
+                    <div class="choix-card" id="card-livraison"
+                         onclick="choisir('livraison')">
+                        <div class="icone">🚚</div>
+                        <h4>Livraison à domicile</h4>
+                        <p>Recevez vos produits directement chez vous.</p>
+                        <span class="badge-choix"
+                              id="badge-livraison">Sélectionner</span>
+                    </div>
+
+                    <div class="choix-card" id="card-retrait"
+                         onclick="choisir('retrait')">
+                        <div class="icone">🏪</div>
+                        <h4>Retrait en boutique</h4>
+                        <p>Venez chercher vos produits dans notre boutique.</p>
+                        <span class="badge-choix"
+                              id="badge-retrait">Sélectionner</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <form method="post" th:action="@{/setup}" id="formCommande">
+                <!-- CONTENU LIVRAISON -->
+                <div class="livraison-content" id="contenu-livraison">
+                    <h4>📍 Votre adresse de livraison</h4>
+
+                    <div class="input-group">
+                        <label>Nom complet</label>
+                        <input type="text" placeholder="Ex : Fify Rakoto"
+                               id="nom-livraison" name="nom"/>
+                    </div>
+                    <div class="input-group">
+                        <label>Numéro de téléphone</label>
+                        <input type="tel" placeholder="Ex : 034 XX XXX XX"
+                               id="tel-livraison" name="tel"/>
+                    </div>
+                    <div class="input-group">
+                        <label>Adresse (quartier, ville...)</label>
+                        <input type="text"
+                               placeholder="Ex : Ankadimbahoaka, Antananarivo"
+                               id="adresse-livraison" name="lieu"/>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════
+                         CARTE GOOGLE MAPS
+                         Fonctionnement :
+                         - Clic sur la carte → remplit les champs
+                           cachés "latitude" et "longitude"
+                         - Ces 2 champs sont envoyés avec le form
+                           vers /setup
+                    ═══════════════════════════════════════════ -->
+                    <div class="map-zone">
+                        <div class="map-zone-label">
+                            🗺️ Cliquez sur la carte pour indiquer votre position exacte
+                        </div>
+                        <div id="map"></div>
+                        <div class="coords-info">
+                            <span>Latitude : <strong id="latDisplay">—</strong></span>
+                            <span>Longitude : <strong id="lngDisplay">—</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Champs cachés envoyés au serveur -->
+                    <input type="hidden" id="latitude" name="latitude"/>
+                    <input type="hidden" id="longitude" name="longitude"/>
+
+                    <button type="submit" class="btn" id="submitBtn" style="margin-top:1rem;">
+                        💳 Passer au paiement
+                    </button>
+                </div>
+            </form>
+
+            <!-- CONTENU RETRAIT -->
+            <div class="retrait-content" id="contenu-retrait">
+                <h4>🏪 Informations de la boutique</h4>
+
+                <div class="retrait-info">
+                    <div class="icone-boutique">📍</div>
+                    <div>
+                        <h5>fyGYM — Boutique principale</h5>
+                        <p>
+                            📌 Adresse : Antananarivo, Madagascar<br>
+                            📞 Téléphone : 034 XX XXX XX<br>
+                            📧 Email : gymfy@email.mg
+                        </p>
+                    </div>
+                </div>
+
+                <div class="retrait-info">
+                    <div class="icone-boutique">🕐</div>
+                    <div>
+                        <h5>Horaires d'ouverture</h5>
+                        <p>
+                            Lundi – Vendredi : 08h00 – 18h00<br>
+                            Samedi : 08h00 – 13h00<br>
+                            Dimanche : Fermé
+                        </p>
+                    </div>
+                </div>
+
+                <div class="horaires">
+                    ⚠️ Présentez votre référence lors du retrait.
+                    Votre commande sera prête sous 24h après confirmation
+                    du paiement.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── COLONNE DROITE ── -->
+        <div class="col-droite">
+
+            <!-- RÉSUMÉ -->
+            <div class="resume-card">
+                <h3>🧾 Résumé</h3>
+
+                <div th:each="item : ${panierItem}">
+                    <div class="resume-item">
+                        <span th:text="${item.produit.nom}
+                              + ' ×' + ${item.quantite}"></span>
+                        <span th:text="${item.quantite * item.produit.prix}
+                              + ' Ar'"></span>
+                    </div>
+                </div>
+
+                <div class="resume-total">
+                    <span>Total</span>
+                    <span th:text="${total} + ' Ar'">0 Ar</span>
+                </div>
+            </div>
+
+            <!-- BOUTON CONFIRMER -->
+            <button class="btn-confirmer" id="btn-confirmer"
+                    onclick="confirmerCommande()">
+                Confirmer et passer au paiement →
+            </button>
+
+            <!-- BOUTON RETOUR -->
+            <button class="btn-retour"
+                    onclick="window.location.href='/api/panier/monPanier'">
+                ← Retour au panier
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FOOTER
+<footer class="footer">
+    <div class="footer-logo">GYMfy</div>
+    <p>© 2026 GYMfy — Tous droits réservés</p>
+    <p>Contact : gymfy@email.mg</p>
+</footer>-->
+
+<script>
+    let modeChoisi = null;
+    let map, marker;
+
+    // ══ Initialisation de la carte Google Maps ══
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: -18.8792, lng: 47.5079 }, // Antananarivo par défaut
+            zoom: 12,
+        });
+
+        map.addListener("click", function(event) {
+            const lat = event.latLng.lat();
+            const lng = event.latLng.lng();
+
+            // Affichage lisible
+            document.getElementById("latDisplay").textContent = lat.toFixed(6);
+            document.getElementById("lngDisplay").textContent = lng.toFixed(6);
+
+            // Champs cachés envoyés au serveur
+            document.getElementById("latitude").value = lat;
+            document.getElementById("longitude").value = lng;
+
+            // Marqueur
+            if (marker) {
+                marker.setPosition(event.latLng);
+            } else {
+                marker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                });
+            }
+        });
+    }
+
+    function choisir(mode) {
+        modeChoisi = mode;
+
+        // Reset les deux cartes
+        document.getElementById("card-livraison").classList.remove("selected");
+        document.getElementById("card-retrait").classList.remove("selected");
+        document.getElementById("badge-livraison").textContent = "Sélectionner";
+        document.getElementById("badge-retrait").textContent   = "Sélectionner";
+        document.getElementById("contenu-livraison").classList.remove("visible");
+        document.getElementById("contenu-retrait").classList.remove("visible");
+
+        if (mode === "livraison") {
+            document.getElementById("card-livraison").classList.add("selected");
+            document.getElementById("badge-livraison").textContent = "✓ Sélectionné";
+            document.getElementById("contenu-livraison").classList.add("visible");
+
+            // Recharger la carte au cas où elle n'était pas visible avant (taille 0)
+            if (map) {
+                google.maps.event.trigger(map, 'resize');
+                map.setCenter({ lat: -18.8792, lng: 47.5079 });
+            }
+        } else {
+            document.getElementById("card-retrait").classList.add("selected");
+            document.getElementById("badge-retrait").textContent = "✓ Sélectionné";
+            document.getElementById("contenu-retrait").classList.add("visible");
+        }
+
+        // Affiche le bouton confirmer
+        document.getElementById("btn-confirmer").classList.add("visible");
+    }
+
+    function confirmerCommande() {
+        if (!modeChoisi) {
+            alert("Veuillez choisir un mode de réception !");
+            return;
+        }
+        if (modeChoisi === "livraison") {
+            const nom     = document.getElementById("nom-livraison").value.trim();
+            const tel     = document.getElementById("tel-livraison").value.trim();
+            const adresse = document.getElementById("adresse-livraison").value.trim();
+            if (!nom || !tel || !adresse) {
+                alert("Veuillez remplir tous les champs !");
+                return;
+            }
+            // Soumet le formulaire vers /setup (livraison)
+            document.getElementById("formCommande").submit();
+        } else {
+            // Retrait en boutique → pas de formulaire de livraison
+            window.location.href = `/api/commande/paiement?mode=${modeChoisi}`;
+        }
+    }
+</script>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfUcqJUGudnYxgjUeLpVar8Un6NpyEarM&callback=initMap" async defer></script>
+
+</body>
+<div th:if="${erreur}" style="background:#ffebee; color:#c62828; padding:12px; margin:1rem; border-radius:8px;">
+    ❌ <span th:text="${erreur}"></span>
+</div>
+</html>

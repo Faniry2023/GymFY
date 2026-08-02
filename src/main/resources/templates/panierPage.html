@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GYMfy — Mon Panier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f5f5f5; }
+
+        /* HEADER */
+        .gymfy-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, blue 100%);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .gymfy-logo { font-size: 26px; font-weight: 700; color: yellow; letter-spacing: 2px; }
+        .gymfy-logo span { color: #fff; }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a { color: #ccc; text-decoration: none; font-size: 14px; }
+        .nav-cta { background: rgba(255,0,0,0.7); color: white !important;
+                   padding: 8px 16px; border-radius: 8px; font-weight: 500 !important; }
+
+        /* CONTENU */
+        .page-title {
+            max-width: 1100px; margin: 2rem auto 1rem;
+            padding: 0 1.5rem;
+            font-size: 24px; font-weight: 700; color: #1a1a2e;
+        }
+        .page-title span { color: blue; }
+
+        .panier-wrapper {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+        }
+
+        /* LISTE DES PRODUITS */
+        .panier-liste { display: flex; flex-direction: column; gap: 1rem; }
+
+        .panier-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e0e0e0;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s;
+        }
+        .panier-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+
+        .panier-card img {
+            width: 90px; height: 90px;
+            object-fit: cover; border-radius: 10px;
+            border: 1px solid #eee; flex-shrink: 0;
+        }
+
+        .panier-card-info { flex: 1; }
+        .panier-card-info .nom {
+            font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px;
+        }
+        .panier-card-info .cat {
+            font-size: 11px; color: #3b82f6; font-weight: 600;
+            text-transform: uppercase; margin-bottom: 6px;
+        }
+        .panier-card-info .desc {
+            font-size: 12px; color: #777; margin-bottom: 8px;
+        }
+        .panier-card-info .prix-unit {
+            font-size: 13px; color: #555;
+        }
+        .panier-card-info .prix-unit strong {
+            color: #1a1a2e; font-size: 15px;
+        }
+
+        /* Contrôle quantité */
+        .quantite-ctrl {
+            display: flex; align-items: center; gap: 8px; margin-top: 8px;
+        }
+        .quantite-ctrl button {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 1px solid #1a1a2e;
+            background: #1a1a2e; color: white;
+            font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .quantite-ctrl .qty-val {
+            font-size: 16px; font-weight: 700;
+            min-width: 28px; text-align: center; color: #1a1a2e;
+        }
+        .prix-total-item {
+            font-size: 16px; font-weight: 700; color: blue;
+            white-space: nowrap;
+        }
+
+        /* Boutons droite de la card */
+        .panier-card-actions {
+            display: flex; flex-direction: column;
+            align-items: flex-end; gap: 10px;
+        }
+        .btn-detail-panier {
+            background: rgba(116,79,11,0.75);
+            color: white; border: none;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 12px; cursor: pointer;
+
+        }
+
+        .btn-supprimer {
+            background: #fee2e2; color: #991b1b;
+            border: 1px solid #fca5a5;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 12px; cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-supprimer:hover { background: #991b1b; color: white; }
+
+        /* PANIER VIDE */
+        .panier-vide {
+            background: #fff; border-radius: 14px;
+            border: 1px dashed #ccc;
+            padding: 3rem; text-align: center; color: #aaa;
+        }
+        .panier-vide .icon { font-size: 48px; margin-bottom: 1rem; }
+        .panier-vide p { font-size: 16px; }
+        .panier-vide a {
+            display: inline-block; margin-top: 1rem;
+            background: #1a1a2e; color: white;
+            padding: 10px 24px; border-radius: 8px;
+            text-decoration: none; font-size: 14px;
+        }
+
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a2e; padding: 1.2rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer p { color: #666; font-size: 12px; }
+        .footer-logo { font-size: 18px; font-weight: 700; color: #00d4aa; letter-spacing: 2px; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none; position: fixed;
+            inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #1a1a2e; border-radius: 16px;
+            padding: 1.5rem; max-width: 480px; width: 90%;
+            text-align: center;
+        }
+        .modal-box img {
+            width: 100%; height: 220px;
+            object-fit: cover; border-radius: 10px; margin-bottom: 1rem;
+        }
+        .modal-box h3 { color: white; font-size: 18px; margin-bottom: 8px; }
+        .modal-box p { color: #aaa; font-size: 13px; margin-bottom: 12px; }
+        .modal-box .prix-modal { color: yellow; font-size: 20px; font-weight: 700; }
+        .modal-box button {
+            margin-top: 1rem; background: rgba(255,255,255,0.1);
+            color: white; border: 1px solid #555;
+            padding: 8px 20px; border-radius: 8px; cursor: pointer;
+        }
+        #modalImg{
+            width: 100%;
+            height: 220px;
+            object-fit:cover;
+        }
+
+        @media (max-width: 768px) {
+            .panier-wrapper { grid-template-columns: 1fr; }
+            .recap { position: static; }
+        }
+.panier-wrapper{
+    transition:0.3s;
+}
+
+.panier-wrapper.active{
+    filter: blur(3px);
+}
+
+                /* RÉCAPITULATIF */
+        .recap {
+            background: #fff; border-radius: 14px;
+            border: 1px solid #e0e0e0;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            position: sticky; top: 1rem;
+            height: fit-content;
+        }
+        .recap h3 {
+            font-size: 17px; font-weight: 700;
+            color: #1a1a2e; margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .recap-ligne {
+            display: flex; justify-content: space-between;
+            font-size: 14px; color: #555; margin-bottom: 10px;
+        }
+        .recap-ligne.total {
+            font-size: 18px; font-weight: 700; color: #1a1a2e;
+            border-top: 2px solid #f0f0f0;
+            padding-top: 12px; margin-top: 8px;
+        }
+        .recap-ligne.total span:last-child { color: blue; }
+
+        .btn-commander {
+            width: 100%; margin-top: 1.2rem;
+            background: linear-gradient(135deg, #1a1a2e, blue);
+            color: white; border: none;
+            padding: 14px; border-radius: 10px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.5px;
+        }
+        .btn-commander:hover { opacity: 0.9; }
+
+        .btn-continuer {
+            width: 100%; margin-top: 10px;
+            background: transparent; color: #1a1a2e;
+            border: 1px solid #1a1a2e;
+            padding: 11px; border-radius: 10px;
+            font-size: 14px; cursor: pointer;
+        }
+        .btn-continuer:hover { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="gymfy-header">
+    <div class="gymfy-logo">GYM<span>fy</span></div>
+    <ul class="nav-links">
+        <li><a th:href="@{/api/produit/acceuil}">Accueil</a></li>
+        <li><a href="#">Produits</a></li>
+        <li><a href="#">À propos</a></li>
+
+    </ul>
+</header>
+
+<!-- TITRE -->
+<div class="page-title">🛒 Mon <span>Panier</span></div>
+
+<!-- CONTENU -->
+<div class="panier-wrapper" id="panier-wrapper">
+
+    <!-- LISTE -->
+    <div class="panier-liste">
+
+        <!-- Panier vide -->
+        <div class="panier-vide"th:if="${#lists.isEmpty(panierItem)}" >
+            <div class="icon">🛒</div>
+            <p>Votre panier est vide !</p>
+            <a th:href="@{/api/produit/acceuil}" >← Retour aux produits</a>
+        </div>
+
+        <!-- Chaque produit dans le panier -->
+        <div class="panier-card" th:each="item : ${panierItem}" >
+
+            <img th:src="@{/api/produit/imageProduit/{id}(id=${item.produit.id})}" />
+            <div class="panier-card-info">
+                <div class="nom" th:text="${item.produit.nom}">Nom produit</div>
+                <div class="cat" th:text="${item.produit.categorie}" >Catégorie</div>
+                <div class="desc" th:text="${item.produit.description}">Description...</div>
+                <div class="prix-unit">
+                    Prix unitaire : <strong th:text="${item.produit.prix}">0 Ar</strong>
+                </div>
+
+                <!-- Contrôle quantité -->
+                <!-- Contrôle quantité -->
+                <div class="quantite-ctrl">
+                    <button onclick="changerQuantite(this, -1)"
+                            th:data-item-id="${item.id}"
+                            th:data-prix="${item.produit.prix}">−</button>
+                    <span class="qty-val" th:text="${item.quantite}">1</span>
+                    <button onclick="changerQuantite(this, +1)"
+                            th:data-item-id="${item.id}"
+                            th:data-prix="${item.produit.prix}">+</button>
+                    <span class="prix-total-item"
+                          th:text="${item.quantite * item.produit.prix} + ' Ar'">0 Ar</span>
+                </div>
+            </div>
+
+            <!-- Boutons action -->
+            <div class="panier-card-actions">
+                <button class="btn-detail-panier" onclick="voirDetail(this)"
+                        th:data-nom="${item.produit.nom}"
+                        th:data-description="${item.produit.description}"
+                        th:data-prix="${item.produit.prix}"
+                        th:data-image="@{/api/produit/imageProduit/{id}(id=${item.produit.id})}">
+                    👁 Détait </button>
+                <form th:action="@{/api/panier/deleteProduitItem/{id}(id=${item.id})}" method="post">
+                    <button type="submit" class="btn-supprimer">
+                        🗑 Supprimer
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RÉCAPITULATIF -->
+    <div class="recap">
+        <h3>📋 Récapitulatif</h3>
+
+        <!-- ✅ panierItem (sans "s") — même nom que le controller -->
+        <div th:each="item : ${panierItem}" class="recap-ligne"
+             th:id="'recap-' + ${item.id}">
+            <span th:text="${item.produit.nom} + ' x' + ${item.quantite}">Produit x1</span>
+            <span th:text="${item.quantite * item.produit.prix} + ' Ar'"
+                  class="item-total">0 Ar</span>
+        </div>
+
+        <div class="recap-ligne total">
+            <span>Total</span>
+            <!-- ✅ Calcul simple sans stream() -->
+            <span id="grand-total">0 Ar</span>
+        </div>
+
+        <button class="btn-commander" onclick="commander()">
+            💳 Passer la commande
+        </button>
+        <button class="btn-continuer"
+                onclick="window.location.href='/api/produit/acceuil'">
+            ← Continuer mes achats
+        </button>
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- FOOTER
+<footer class="footer">
+    <div class="footer-logo">GYMfy</div>
+    <p>© 2026 GYMfy — Tous droits réservés</p>
+    <p>Contact : gymfy@email.mg</p>
+</footer>
+-->
+
+<!-- MODAL DÉTAIL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <img id="modalImg" src="" alt="">
+        <h3 id="modalNom"></h3>
+        <p id="modalDesc"></p>
+        <div class="prix-modal" id="modalPrix"></div>
+        <button onclick="closeModal()">Fermer</button>
+    </div>
+</div>
+
+<script>
+    function voirDetail(btn) {
+    document.getElementById("panier-wrapper").classList.add("active");
+
+    document.getElementById("modalNom").innerText   = btn.dataset.nom;
+    document.getElementById("modalDesc").innerText  = btn.dataset.description;
+    document.getElementById("modalPrix").innerText  = btn.dataset.prix + " Ar";
+    document.getElementById("modalImg").src         = btn.dataset.image;
+    document.getElementById("modalOverlay").classList.add("active");
+    }
+    function closeModal() {
+        document.getElementById("modalOverlay").classList.remove("active");
+        document.getElementById("panier-wrapper").classList.remove("active");
+    }
+
+     function changerQuantite(btn, delta) {
+        const ctrl     = btn.closest(".quantite-ctrl");
+        const card     = btn.closest(".panier-card");
+        const itemId   = btn.dataset.itemId;
+        const prix     = parseInt(btn.dataset.prix);
+        const qtySpan  = ctrl.querySelector(".qty-val");
+        const prixSpan = ctrl.querySelector(".prix-total-item");
+
+        let qtyActuelle = parseInt(qtySpan.textContent);
+        let nouvelleQty = qtyActuelle + delta;
+
+        if (nouvelleQty < 1) return; // minimum 1
+
+        fetch(`/api/panier/modifierQuantite/${itemId}?quantite=${nouvelleQty}`, {
+            method: "POST"
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.succes) {
+                qtySpan.textContent  = nouvelleQty;
+                prixSpan.textContent = (nouvelleQty * prix) + " Ar";
+
+                // Mettre à jour le récap
+                const recapItem = document.querySelector(`#recap-${itemId} .item-total`);
+                if (recapItem) recapItem.textContent = (nouvelleQty * prix) + " Ar";
+
+                recalculerTotal();
+            } else {
+                alert(data.message || "Erreur modification quantité");
+            }
+        });
+    }
+    // Ajouter dans le <script> de panierPage.html
+function recalculerTotal() {
+    let total = 0;
+    document.querySelectorAll(".item-total").forEach(el => {
+        const val = parseInt(el.textContent.replace(" Ar", "").replace(/\s/g, ""));
+        if (!isNaN(val)) total += val;
+    });
+    document.getElementById("grand-total").textContent = total + " Ar";
+}
+
+// Calculer le total au chargement de la page
+window.onload = function() {
+    recalculerTotal();
+}
+    function commander() {
+    window.location.href = "/api/commande/confirmation";
+}
+
+</script>
+
+</body>
+</html>
