@@ -57,7 +57,7 @@ public class PaySimController {
             Model model
     ) {
         try {
-            // ✅ 1. Récupérer l'utilisateur connecté
+            //  1. Récupérer l'utilisateur connecté
             Long utilisateurId = (Long) session.getAttribute("utilisateurId");
             if (utilisateurId == null) {
                 return "redirect:/api/inscri/login";
@@ -65,7 +65,7 @@ public class PaySimController {
 
             List<PanierItem> panierItem = panierService.getPanierUti(utilisateurId);
 
-            // ✅ Calcul du total en Java — pas de stream() Thymeleaf
+            //  Calcul du total en Java — pas de stream() Thymeleaf
             long total = panierItem.stream()
                     .mapToLong(item ->
                             (long)(item.getQuantite() * item.getProduit().getPrix()))
@@ -90,7 +90,7 @@ public class PaySimController {
 
             // ✅ 3. Le développeur remplit ici — jamais visible dans le navigateur
             InfoPaiDevHelper info = new InfoPaiDevHelper();
-            info.setApiKey("paysim_8f2ff8379eb31a69b764b2ae24c6e11b6f7c88484586403cc74b02896416c6a4");
+            info.setApiKey("paysim_7ccf675f59bd3ac60eaf193c55ae77d9430560577861886d3567d1d751ca2b35");
             //info.setApiKey("paysim_511a7a8b192b601535347d24d244d92f09ea50d7e37b5d75722fa0f70acd0b65");
             info.setIdOrder(String.valueOf(commande.getId())); // ← ID de la commande enregistrée
             info.setTotalprice(new BigDecimal(total));
