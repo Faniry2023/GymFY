@@ -12,14 +12,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-  mail:
-    host: smtp.gmail.com
-    port: 465
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
+
+  resend:
+    api-key: ${RESEND_API_KEY}

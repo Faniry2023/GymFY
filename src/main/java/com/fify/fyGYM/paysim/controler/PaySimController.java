@@ -9,7 +9,7 @@ import com.fify.fyGYM.paysim.model.ValueQr;
 import com.fify.fyGYM.repository.CommandeRepository;
 import com.fify.fyGYM.paysim.service.PaySimService;
 import com.fify.fyGYM.repository.UtilisateurRepository;
-import com.fify.fyGYM.service.EmailService;
+import com.fify.fyGYM.service.EmailServicev_2;
 import com.fify.fyGYM.service.LivraisonService;
 import com.fify.fyGYM.service.PanierService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,7 +40,7 @@ public class PaySimController {
     private LivraisonService livraisonService;
 
     @Autowired
-    private EmailService emailService;
+    private EmailServicev_2 emailService;
 
     @Autowired
     private CommandeRepository commandeRepository;
