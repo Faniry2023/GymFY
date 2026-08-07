@@ -2,7 +2,6 @@ package com.fify.fyGYM.controller;
 
 import com.fify.fyGYM.model.Admin;
 import com.fify.fyGYM.model.Utilisateur;
-import com.fify.fyGYM.service.EmailService_v1;
 import com.fify.fyGYM.service.InscriptionService;
 import com.fify.fyGYM.service.LoginService;
 import jakarta.servlet.http.HttpSession;
@@ -34,8 +33,6 @@ public class InscriEtLoginController {
     public String getPageLog(){
         return "loginPage";
     }
-    @Autowired
-    private EmailService_v1 emailService;
 
     @PostMapping("/inscription")
     public String creatUti(@ModelAttribute Utilisateur utilisateur,
