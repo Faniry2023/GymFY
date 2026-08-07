@@ -90,7 +90,7 @@ public class PaySimController {
 
             // ✅ 3. Le développeur remplit ici — jamais visible dans le navigateur
             InfoPaiDevHelper info = new InfoPaiDevHelper();
-            info.setApiKey("paysim_7ccf675f59bd3ac60eaf193c55ae77d9430560577861886d3567d1d751ca2b35");
+            info.setApiKey("paysim_235247a8d32bddccdbdb397bcaef8c5761680c960806d8df2d63f0ef895ff3f9");
             //info.setApiKey("paysim_511a7a8b192b601535347d24d244d92f09ea50d7e37b5d75722fa0f70acd0b65");
             info.setIdOrder(String.valueOf(commande.getId())); // ← ID de la commande enregistrée
             info.setTotalprice(new BigDecimal(total));
