@@ -8,6 +8,7 @@ import com.fify.fyGYM.paysim.model.InfoPaiDevHelper;
 import com.fify.fyGYM.paysim.model.ValueQr;
 import com.fify.fyGYM.repository.CommandeRepository;
 import com.fify.fyGYM.paysim.service.PaySimService;
+import com.fify.fyGYM.repository.PanierRepository;
 import com.fify.fyGYM.repository.UtilisateurRepository;
 import com.fify.fyGYM.service.EmailService;
 import com.fify.fyGYM.service.LivraisonService;
@@ -35,6 +36,9 @@ public class PaySimController {
 
     @Autowired
     private PanierService panierService;
+
+    @Autowired
+    private PanierRepository panierRepository;
 
     @Autowired
     private LivraisonService livraisonService;
@@ -130,6 +134,10 @@ public class PaySimController {
         Long utilisateurId = (Long) session.getAttribute("utilisateurId");
         if (utilisateurId != null){
             List<PanierItem> produits = panierService.getPanierUti(utilisateurId);
+            for (PanierItem item : produits) {
+                item.setEstPayer(true);
+                panierRepository.save(item);
+            }
             long total = produits.stream().mapToLong(item ->(long) (item.getQuantite() * item.getProduit().getPrix())).sum();
 
             List<Commande> commandes = commandeRepository.findByIdUser(utilisateurId);
@@ -157,8 +165,9 @@ public class PaySimController {
 
             livraisonService.saveLivraison(livraison);
 
+            /*
             panierService.viderPanier(utilisateurId);
-            commandeRepository.deleteByIdUser(utilisateurId);
+            commandeRepository.deleteByIdUser(utilisateurId);*/
 
         }
         return "succespay";

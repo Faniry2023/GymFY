@@ -27,7 +27,7 @@ public class PanierController {
         if(userId == null){
             return "redirect:/api/inscri/login";
         }
-        model.addAttribute("panierItem",panierService.getPanierUti(userId));
+        model.addAttribute("panierItem",panierService.getPanierNonPayer(userId));
         return "panierPage";
     }
 

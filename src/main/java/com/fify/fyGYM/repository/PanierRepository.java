@@ -22,4 +22,6 @@ public interface PanierRepository extends JpaRepository<PanierItem, Long> {
         // ✅ Méthode CORRECTE ici
         @Transactional
         void deleteByProduitId(Long produitId);
+
+        List<PanierItem> findByUtilisateurAndEstPayer(Utilisateur utilisateur, boolean estPayer);
 }

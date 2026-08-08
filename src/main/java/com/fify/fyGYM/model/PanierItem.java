@@ -11,6 +11,7 @@ public class PanierItem {
         return id;
     }
 
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -39,6 +40,9 @@ public class PanierItem {
         this.quantite = quantite;
     }
 
+    public void setEstPayer(boolean estPayer){ this.estPayer = estPayer;}
+    public boolean getEstPayer(){return estPayer;}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,4 +59,5 @@ public class PanierItem {
 
     // Quantité ajoutée
     private int quantite;
+    private boolean estPayer;
 }

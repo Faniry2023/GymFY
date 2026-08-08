@@ -97,4 +97,10 @@ public class PanierService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         panierRepository.deleteByUtilisateur(utilisateur);
     }
+
+    public List<PanierItem> getPanierNonPayer(Long utilisateurId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé!"));
+        return panierRepository.findByUtilisateurAndEstPayer(utilisateur, false);
+    }
 }
