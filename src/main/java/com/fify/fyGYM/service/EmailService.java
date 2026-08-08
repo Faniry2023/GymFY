@@ -1,49 +1,37 @@
 package com.fify.fyGYM.service;
 import com.fify.fyGYM.model.PanierItem;
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 public class EmailService {
-    private final Resend resend;
 
-    public EmailService(@Value("${resend.api-key}") String apiKey) {
-        this.resend = new Resend(apiKey);
-    }
 
-    public void envoyerCodeVerification(String destinataire, String prenom, String code) {
-        try {
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from("GymFy <onboarding@resend.dev>")
-                    .to(destinataire)
-                    .subject("GYMfy — Votre code de vérification")
-                    .html(construireHtmlVerification(prenom, code))
-                    .build();
-            resend.emails().send(params);
-        } catch (ResendException e) {
-            throw new RuntimeException("Erreur envoi email : " + e.getMessage(), e);
-        }
-    }
+    @Autowired
+    private JavaMailSender mailSender;
 
     public void envoyerFacture(String destinataire, String prenomNom, Long numeroFacture,
                                List<PanierItem> produits, long total, String codeLivraison) {
         try {
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from("GymFy <onboarding@resend.dev>")
-                    .to(destinataire)
-                    .subject("GYMfy — Votre facture #" + numeroFacture)
-                    .html(construireHtmlFacture(prenomNom, numeroFacture, produits, total, codeLivraison))
-                    .build();
-            resend.emails().send(params);
-        } catch (ResendException e) {
-            throw new RuntimeException("Erreur envoi facture : " + e.getMessage(), e);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(destinataire);
+            helper.setFrom("samikah23@gmail.com", "GymFy");
+            helper.setSubject("GYMfy — Votre facture #" + numeroFacture);
+            helper.setText(construireHtmlFacture(prenomNom, numeroFacture, produits, total, codeLivraison), true);
+            mailSender.send(message);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException("Erreur facture : " + e.getMessage(), e);
         }
     }
 
