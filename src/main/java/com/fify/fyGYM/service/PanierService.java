@@ -37,7 +37,8 @@ public class PanierService {
         produitRepository.save(produit);
 
         Optional<PanierItem> existant = panierRepository.findByUtilisateurAndProduit(utilisateur , produit);
-        if(existant.isPresent()){
+        if(existant.isPresent() && !existant.get().getEstPayer()){
+
             PanierItem item = existant.get();
             item.setQuantite(item.getQuantite() + 1);
             panierRepository.save(item);
@@ -46,6 +47,7 @@ public class PanierService {
             newItem.setProduit(produit);
             newItem.setQuantite(1);
             newItem.setUtilisateur(utilisateur);
+            newItem.setEstPayer(false);
             panierRepository.save(newItem);
         }
         return produit.getStock();
