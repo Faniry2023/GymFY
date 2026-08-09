@@ -133,7 +133,7 @@ public class PaySimController {
     ) {
         Long utilisateurId = (Long) session.getAttribute("utilisateurId");
         if (utilisateurId != null){
-            List<PanierItem> produits = panierService.getPanierUti(utilisateurId);
+            List<PanierItem> produits = panierService.getPanierNonPayer(utilisateurId);
             for (PanierItem item : produits) {
                 item.setEstPayer(true);
                 panierRepository.save(item);
