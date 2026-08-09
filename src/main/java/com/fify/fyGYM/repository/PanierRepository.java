@@ -15,6 +15,7 @@ public interface PanierRepository extends JpaRepository<PanierItem, Long> {
 
         List<PanierItem> findByUtilisateur(Utilisateur utilisateur);
         Optional<PanierItem> findByUtilisateurAndProduit(Utilisateur utilisateur, Produit produit);
+        Optional<PanierItem> findByUtilisateurAndProduitAndEstPayer(Utilisateur utilisateur, Produit produit, boolean estPayer);
 
         @Transactional
         void deleteByUtilisateur(Utilisateur utilisateur);
@@ -24,4 +25,5 @@ public interface PanierRepository extends JpaRepository<PanierItem, Long> {
         void deleteByProduitId(Long produitId);
 
         List<PanierItem> findByUtilisateurAndEstPayer(Utilisateur utilisateur, boolean estPayer);
+
 }

@@ -36,7 +36,8 @@ public class PanierService {
         produit.setStock(produit.getStock() - 1);
         produitRepository.save(produit);
 
-        Optional<PanierItem> existant = panierRepository.findByUtilisateurAndProduit(utilisateur , produit);
+        //Optional<PanierItem> existant = panierRepository.findByUtilisateurAndProduit(utilisateur , produit);
+        Optional<PanierItem> existant = panierRepository.findByUtilisateurAndProduitAndEstPayer(utilisateur, produit, false);
         if(existant.isPresent() && !existant.get().getEstPayer()){
 
             PanierItem item = existant.get();
