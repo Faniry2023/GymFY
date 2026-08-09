@@ -59,5 +59,8 @@ public class PanierItem {
 
     // Quantité ajoutée
     private int quantite;
-    private boolean estPayer;
+
+    // ✅ Après
+    @Column(columnDefinition = "boolean default false")
+    private boolean estPayer = false;
 }
