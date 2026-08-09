@@ -67,7 +67,7 @@ public class PaySimController {
                 return "redirect:/api/inscri/login";
             }
 
-            List<PanierItem> panierItem = panierService.getPanierUti(utilisateurId);
+            List<PanierItem> panierItem = panierService.getPanierNonPayer(utilisateurId);
 
             //  Calcul du total en Java — pas de stream() Thymeleaf
             long total = panierItem.stream()
