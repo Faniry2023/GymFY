@@ -26,7 +26,7 @@ public class CommandeController {
             return "redirect:/api/inscri/login";
         }
 
-        List<PanierItem> panierItem = panierService.getPanierUti(userId);
+        List<PanierItem> panierItem = panierService.getPanierNonPayer(userId);
 
         // ✅ Calcul du total en Java — pas de stream() Thymeleaf
         long total = panierItem.stream()

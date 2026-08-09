@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface PanierRepository extends JpaRepository<PanierItem, Long> {
 
         List<PanierItem> findByUtilisateur(Utilisateur utilisateur);
-        Optional<PanierItem> findByUtilisateurAndProduit(Utilisateur utilisateur, Produit produit);
+       // Optional<PanierItem> findByUtilisateurAndProduit(Utilisateur utilisateur, Produit produit);
         Optional<PanierItem> findByUtilisateurAndProduitAndEstPayer(Utilisateur utilisateur, Produit produit, boolean estPayer);
 
         @Transactional
