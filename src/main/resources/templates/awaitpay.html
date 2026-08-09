@@ -99,7 +99,7 @@
 
   <!-- QR Code généré ici -->
   <div id="qrcode"></div>
-  <!--<div id="valueKeyText" class="info-box"></div>-->
+  <div id="valueKeyText" class="info-box"></div>
 
   <!-- Statut attente -->
   <div class="status attente" id="statusAttente">
@@ -120,7 +120,7 @@
 
 <script th:inline="javascript">
   const valueKey = /*[[${valueKey}]]*/ '';
-document.getElementById("valueKeyText").textContent = valueKey;
+//document.getElementById("valueKeyText").textContent = valueKey;
   new QRCode(document.getElementById("qrcode"), {
       text: valueKey,
       width: 220,
